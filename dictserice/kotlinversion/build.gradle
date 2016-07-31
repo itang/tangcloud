@@ -1,0 +1,51 @@
+buildscript {
+    ext {
+        kotlinVersion = '1.0.3'
+        springbootVersion = '1.4.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springbootVersion")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'spring-boot'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    maven {
+        url "http://www.haoshuju.net:8078/"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    //compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+
+    compile("org.springframework.boot:spring-boot-starter-web:$springbootVersion") {
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"
+    }
+
+    compile("org.springframework.boot:spring-boot-starter-undertow:$springbootVersion")
+
+    compile("org.springframework.boot:spring-boot-starter-data-redis:$springbootVersion")
+
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
+
+    compile("org.springframework.boot:spring-boot-devtools:$springbootVersion")
+
+    testCompile "junit:junit:4.12"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+}
+
+mainClassName = 'app.MainKt'
+defaultTasks 'bootRun'
