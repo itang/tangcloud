@@ -1,9 +1,9 @@
-package app.entity
+package app.dao.entity
 
 import java.util.*
 
 
-data class DictHistoryEntity(
+data class DictLogEntity(
         var id: Long? = null,
         var fromLang: String? = null,
         var from: String? = null,

@@ -1,9 +1,9 @@
-package app.dto
+package app.service.dto
 
 import java.io.Serializable
 
 
-data class DictHistory(
+data class DictLog(
         var id: Long?,
         var fromLang: String?,
         var from: String?,

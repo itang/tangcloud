@@ -19,3 +19,5 @@ gradle-app.setting
 
 logs/
 classes/
+
+*.pyc

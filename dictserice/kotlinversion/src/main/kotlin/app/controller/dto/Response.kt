@@ -1,4 +1,4 @@
-package app.dto
+package app.controller.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
 
