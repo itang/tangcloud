@@ -3,6 +3,7 @@ package app.dao.impl
 import app.dao.DictLogRepository
 import app.dao.entity.DictLogEntity
 import app.util.inTransaction
+import app.util.opsForStringHash
 import app.util.parse
 import app.util.stringify
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -23,20 +24,20 @@ open class DictLogRepositoryImpl(
     private val DICT_LOG_DATA_KEY = "tc:dict:log:data"
 
     override fun create(dictLogEntity: DictLogEntity): DictLogEntity {
-        val v = dictLogEntity.id!!.toString()
+        val value = dictLogEntity.id!!.toString()
         val score = dictLogEntity.createdAt!!.time.toDouble()
         val key = DICT_LOG_KEY
 
         redisTemplate.inTransaction {
-            it.opsForZSet().add(key, v, score)
-            it.opsForHash<String, String>().put(DICT_LOG_DATA_KEY, v, JSON.stringify(dictLogEntity))
+            it.opsForZSet().add(key, value, score)
+            it.opsForStringHash.put(DICT_LOG_DATA_KEY, value, JSON.stringify(dictLogEntity))
         }
 
         return dictLogEntity
     }
 
     override fun findAll(): List<DictLogEntity> {
-        return redisTemplate.opsForHash<String, String>().values(DICT_LOG_DATA_KEY).map {
+        return redisTemplate.opsForStringHash.values(DICT_LOG_DATA_KEY).map {
             JSON.parse(it, DictLogEntity::class.java)
         }
     }

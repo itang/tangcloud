@@ -1,5 +1,6 @@
 package app.util
 
+import org.springframework.data.redis.core.HashOperations
 import org.springframework.data.redis.core.RedisTemplate
 
 
@@ -14,3 +15,6 @@ fun RedisTemplate<String, String>.inTransaction(action: (RedisTemplate<String, S
     //return ret
     return listOf()
 }
+
+val RedisTemplate<String, String>.opsForStringHash: HashOperations<String, String, String>
+    get() = this.opsForHash<String, String>()
