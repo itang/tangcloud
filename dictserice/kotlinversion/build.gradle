@@ -49,3 +49,7 @@ dependencies {
 
 mainClassName = 'app.MainKt'
 defaultTasks 'bootRun'
+
+//bootRepackage {
+//    excludeDevtools = true
+//}
