@@ -91,15 +91,18 @@ func main() {
 					c.Do("ZADD", DICT_LOG_KEY, value, score)
 					c.Do("HSET", DICT_LOG_DATA_KEY, value, logEntityJson)
 				})
-				gotang.AssertNoError(err, "err redis multi do")
 				
-				ctx.JSON(200, Response{Status: 200, Message: ""})
+				if err != nil {
+					ctx.JSON(500, Response{Status: 500, Message: err.Error()})
+				} else {
+					ctx.JSON(200, Response{Status: 200, Message: ""})
+				}
 			}
 		})
 		
 		log.Get("", func(ctx *iris.Context) {
 			conn := pool.Get()
-			//defer conn.Close()
+			defer conn.Close()
 			
 			reply, err := redis.Strings(conn.Do("HVALS", DICT_LOG_DATA_KEY))
 			if err != nil {
@@ -115,8 +118,6 @@ func main() {
 				gotang.AssertNoError(err, "json decode")
 				logs = append(logs, log)
 			}
-			
-			conn.Close()
 			
 			ctx.JSON(200, Response{Status: 200, Message: "", Data: logs})
 		})
