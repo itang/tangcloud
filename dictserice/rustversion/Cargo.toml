@@ -6,6 +6,8 @@ version = "0.1.0"
 [dependencies]
 bodyparser = "0.4.1"
 iron = "0.4.0"
+log = "0.3.6"
+log4rs = { version = "0.4.8", features = ["toml"]}
 redis = "0.7.0"
 router = "0.2.0"
 serde = "0.8.4"
