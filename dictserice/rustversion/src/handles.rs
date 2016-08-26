@@ -6,6 +6,7 @@ use serde_json;
 
 use types::*;
 use utils::*;
+use global::*;
 
 const DICT_LOG_KEY: &'static str = "tc:dict:log";
 const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
@@ -54,11 +55,12 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
 
 pub fn list_logs(_: &mut Request) -> IronResult<Response> {
     info!("list_logs...");
-    let conn = {
-        let client = try!(redis::Client::open(REDIS_URL)
-            .map_err(|err| server_error(err, "Redis无法访问")));
-        try!(client.get_connection().map_err(|err| server_error(err, "Redis无法访问")))
-    };
+//    let conn = {
+//        let client = try!(redis::Client::open(REDIS_URL)
+//            .map_err(|err| server_error(err, "Redis无法访问")));
+//        try!(client.get_connection().map_err(|err| server_error(err, "Redis无法访问")))
+//    };
+    let conn = conn_pool().clone().get().unwrap();
 
     let res: Vec<String> = try!(conn.hvals(DICT_LOG_DATA_KEY)
         .map_err(|err| server_error(err, "Redis操作出错")));

@@ -1,6 +1,8 @@
 #![feature(custom_derive, plugin)]
 #![plugin(serde_macros)]
 
+#[macro_use]
+extern crate lazy_static;
 extern crate time;
 extern crate iron;
 extern crate router;
@@ -11,7 +13,10 @@ extern crate redis;
 #[macro_use]
 extern crate log;
 extern crate log4rs;
+extern crate r2d2;
+extern crate r2d2_redis;
 
+mod global;
 mod utils;
 mod types;
 mod handles;
