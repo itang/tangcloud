@@ -36,13 +36,14 @@ pub fn json<T>(status: status::Status, value: &T) -> IronResult<Response>
 pub fn json_ok<T>(value: &T) -> IronResult<Response>
     where T: ser::Serialize
 {
-    return json(status::Ok, value)
+    return json(status::Ok, value);
 }
 
 pub struct JsonEncodeErrorWrapper(pub JsonError);
 
 impl From<JsonEncodeErrorWrapper> for IronError {
     fn from(wrapper: JsonEncodeErrorWrapper) -> IronError {
-        IronError::new(wrapper.0, (status::InternalServerError, "json encode error"))
+        IronError::new(wrapper.0,
+                       (status::InternalServerError, "json encode error"))
     }
 }
