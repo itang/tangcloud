@@ -1,6 +1,6 @@
 use iron;
 use iron::prelude::*;
-use redis::{self, Commands};
+use redis::Commands;
 use bodyparser;
 use serde_json;
 
@@ -8,9 +8,9 @@ use types::*;
 use utils::*;
 use global::*;
 
+
 const DICT_LOG_KEY: &'static str = "tc:dict:log";
 const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
-const REDIS_URL: &'static str = "redis://127.0.0.1/";
 
 pub fn create_logs(req: &mut Request) -> IronResult<Response> {
     info!("create_logs...");
@@ -36,11 +36,7 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
 
     info!("log_entity_json: {:?}", log_entity_json);
 
-    let conn = {
-        let client = try!(redis::Client::open(REDIS_URL)
-            .map_err(|err| server_error(err, "Redis无法访问")));
-        try!(client.get_connection().map_err(|err| server_error(err, "Redis无法访问")))
-    };
+    let conn = try!(conn_pool().get().map_err(|err| server_error(err, "Redis无法访问")));
 
     let value = format!("{}", id);
     let score = id;
@@ -55,12 +51,8 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
 
 pub fn list_logs(_: &mut Request) -> IronResult<Response> {
     info!("list_logs...");
-//    let conn = {
-//        let client = try!(redis::Client::open(REDIS_URL)
-//            .map_err(|err| server_error(err, "Redis无法访问")));
-//        try!(client.get_connection().map_err(|err| server_error(err, "Redis无法访问")))
-//    };
-    let conn = conn_pool().clone().get().unwrap();
+
+    let conn = try!(conn_pool().get().map_err(|err| server_error(err, "Redis无法访问")));
 
     let res: Vec<String> = try!(conn.hvals(DICT_LOG_DATA_KEY)
         .map_err(|err| server_error(err, "Redis操作出错")));
