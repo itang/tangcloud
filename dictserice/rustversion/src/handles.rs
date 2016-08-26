@@ -20,8 +20,8 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
 
     let id = timestamp() as i64;
 
+    let entity = DictLogEntity { id: id, from: log.from, from_lang: log.from_lang, to: log.to, to_lang: log.to_lang };
     let log_entity_json = {
-        let entity = DictLogEntity { id: id, from: log.from, from_lang: log.from_lang, to: log.to, to_lang: log.to_lang };
         try!(serde_json::to_string(&entity).map_err(|err| server_error(err, "解析json出错")))
     };
 
@@ -38,7 +38,7 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
     let _: () = try!(conn.zadd(DICT_LOG_KEY, value.clone(), score).map_err(|err| server_error(err, "Redis操作出错")));
     let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, value.clone(), log_entity_json).map_err(|err| server_error(err, "Redis操作出错")));
 
-    Ok(Response::with((iron::status::Created, "")))
+    json(iron::status::Created, &entity)
 }
 
 pub fn list_logs(_: &mut Request) -> IronResult<Response> {
@@ -54,6 +54,5 @@ pub fn list_logs(_: &mut Request) -> IronResult<Response> {
         .map(|it| serde_json::from_str(&it).unwrap())
         .collect();
 
-    let resp = try!(serde_json::to_string(&res).map_err(|err| server_error(err, "解析json出错")));
-    Ok(Response::with((iron::status::Ok, resp)))
+    json_ok(&res)
 }
