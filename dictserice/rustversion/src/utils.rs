@@ -15,7 +15,7 @@ pub fn timestamp() -> f64 {
 }
 
 pub fn server_error<E: iron::Error>(cause: E, error: &str) -> IronError {
-    IronError::new(Box::new(cause), (iron::status::InternalServerError, error))
+    IronError::new(cause, (iron::status::InternalServerError, error))
 }
 
 pub fn badrequest_error<E: iron::Error>(cause: E, error: &str) -> IronError {
