@@ -30,9 +30,9 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
         to: log.to,
         to_lang: log.to_lang,
     };
-    let log_entity_json = {
-        try!(serde_json::to_string(&entity).map_err(|err| server_error(err, "解析json出错")))
-    };
+    let log_entity_json = try!(serde_json::to_string(&entity)
+        .map_err(|err| server_error(err, "解析json出错")));
+
 
     info!("log_entity_json: {:?}", log_entity_json);
 
@@ -41,9 +41,9 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
     let value = format!("{}", id);
     let score = id;
 
-    let _: () = try!(conn.zadd(DICT_LOG_KEY, value.clone(), score)
+    let _: () = try!(conn.zadd(DICT_LOG_KEY, &value, score)
         .map_err(|err| server_error(err, "Redis操作出错")));
-    let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, value.clone(), log_entity_json)
+    let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, &value, log_entity_json)
         .map_err(|err| server_error(err, "Redis操作出错")));
 
     json(iron::status::Created, &entity)
