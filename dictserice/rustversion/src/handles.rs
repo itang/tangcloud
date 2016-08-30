@@ -21,6 +21,18 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
                                           (iron::status::BadRequest, "解析json出错"))))
     };
 
+    if log.from == "" {
+        return json(iron::status::BadRequest,
+                    &RError::<()> {
+                        errors: vec![RErrorItem::builder()
+                                         .title("'from' can't by empty".into())
+                                         .source("log.from".into())
+                                         .code("123".into())
+                                         .build()],
+                    });
+    }
+
+
     let id = timestamp() as i64;
 
     let entity = DictLogEntity {
@@ -46,7 +58,7 @@ pub fn create_logs(req: &mut Request) -> IronResult<Response> {
     let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, &value, log_entity_json)
         .map_err(|err| server_error(err, "Redis操作出错")));
 
-    json(iron::status::Created, &entity)
+    json(iron::status::Created, &ROk { data: entity })
 }
 
 pub fn list_logs(_: &mut Request) -> IronResult<Response> {
@@ -61,5 +73,5 @@ pub fn list_logs(_: &mut Request) -> IronResult<Response> {
         .map(|it| serde_json::from_str(&it).unwrap())
         .collect();
 
-    json_ok(&res)
+    json_ok(&ROk { data: res })
 }

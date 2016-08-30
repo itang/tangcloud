@@ -7,4 +7,7 @@
 * [x] Redis 连接管理
 * [ ] Response Data type
 * [x] Content-Type: JSON/UTF-8
+* [ ] 支持http://jsonapi.org/format/ ?
 * [ ] 统一config
+* [ ] 集成JWT
+* [ ] TBD: 集成grpc-rust?
