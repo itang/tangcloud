@@ -5,30 +5,13 @@ import (
 	"fmt"
 	"time"
 	
-	"github.com/garyburd/redigo/redis"
 	"github.com/itang/gotang"
 	"github.com/kataras/iris"
+	"gopkg.in/redis.v4"
+	"github.com/uber-go/zap"
+	
+	"dictservice/types"
 )
-
-type DictLog struct {
-	From     string `json:"from"`
-	
-	FromLang string `json:"fromLang"`
-	
-	ToLang   string `json:"toLang"`
-	To       string `json:"to"`
-}
-
-type DictLogEntity struct {
-	Id int64 `json:"id"`
-	DictLog
-}
-
-type Response struct {
-	Status  int         `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
 
 const (
 	DICT_LOG_KEY = "tc:dict:log"
@@ -36,49 +19,48 @@ const (
 )
 
 var (
-	pool *redis.Pool
+	client *redis.Client = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0, // use default DB
+	})
+	
+	logger = zap.New(zap.NewJSONEncoder(/*zap.NoTime()*/)) // drop timestamps in tests
+	
+	_ = test()
 )
 
-func newPool(server, password string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle: 3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
-			if err != nil {
-				return nil, err
-			}
-			if password != "" {
-				if _, err := c.Do("AUTH", password); err != nil {
-					c.Close()
-					return nil, err
-				}
-			}
-			
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
+func test() string {
+	fmt.Println("var init test")
+	return "test"
+}
+
+func init() {
+	fmt.Printf("package init...")
 }
 
 func main() {
-	pool = newPool(":6379", "")
+	fmt.Println("entry main...")
+	
+	pingErr := client.Ping().Err()
+	if pingErr != nil {
+		logger.Warn(client.Ping().Err().Error())
+	}
+	
+	iris.Any("/ping", func(ctx *iris.Context) {
+		ctx.Text(200, "pong")
+	})
 	
 	log := iris.Party("/dict/logs")
 	{
 		log.Post("", func(ctx *iris.Context) {
-			dictLog := &DictLog{}
+			logger.Info("Post to /dict/logs")
+			dictLog := &types.DictLog{}
 			if err := ctx.ReadJSON(dictLog); err != nil {
-				ctx.JSON(500, Response{Status: 500, Message: err.Error()})
+				ctx.JSON(500, types.Response{Status: 500, Message: err.Error()})
 			} else {
-				conn := pool.Get()
-				defer conn.Close()
-				
 				id := time.Now().Unix()
-				logEntity := DictLogEntity{Id: id, DictLog: *dictLog}
+				logEntity := types.DictLogEntity{Id: id, DictLog: *dictLog}
 				
 				v, err := json.Marshal(logEntity)
 				gotang.AssertNoError(err, "err json encode")
@@ -87,48 +69,37 @@ func main() {
 				score := id
 				logEntityJson := string(v)
 				
-				_, err = multi(conn, func(c redis.Conn) {
-					c.Do("ZADD", DICT_LOG_KEY, value, score)
-					c.Do("HSET", DICT_LOG_DATA_KEY, value, logEntityJson)
-				})
+				client.ZAdd(DICT_LOG_KEY, redis.Z{Member:value, Score: float64(score)})
+				client.HSet(DICT_LOG_DATA_KEY, value, logEntityJson)
 				
 				if err != nil {
-					ctx.JSON(500, Response{Status: 500, Message: err.Error()})
+					ctx.JSON(500, types.Response{Status: 500, Message: err.Error()})
 				} else {
-					ctx.JSON(200, Response{Status: 200, Message: ""})
+					ctx.JSON(200, types.Response{Status: 200, Message: ""})
 				}
 			}
 		})
 		
 		log.Get("", func(ctx *iris.Context) {
-			conn := pool.Get()
-			defer conn.Close()
+			logger.Info("Get /dict/logs")
 			
-			reply, err := redis.Strings(conn.Do("HVALS", DICT_LOG_DATA_KEY))
-			if err != nil {
-				fmt.Printf("error: %v", err)
-				ctx.Error(err.Error(), 500)
-				return
+			reply := client.HVals(DICT_LOG_DATA_KEY)
+			if reply.Err() != nil {
+				fmt.Printf("error: %v", reply.Err())
+				ctx.Error(reply.Err().Error(), 500)
+			} else {
+				logs := make([]types.DictLog, len(reply.Val()))
+				for _, v := range reply.Val() {
+					log := types.DictLog{}
+					err := json.Unmarshal([]byte(v), &log)
+					gotang.AssertNoError(err, "json decode")
+					logs = append(logs, log)
+				}
+				
+				ctx.JSON(200, types.Response{Status: 200, Message: "", Data: logs})
 			}
-			
-			logs := make([]DictLog, len(reply))
-			for _, v := range reply {
-				log := DictLog{}
-				err := json.Unmarshal([]byte(v), &log)
-				gotang.AssertNoError(err, "json decode")
-				logs = append(logs, log)
-			}
-			
-			ctx.JSON(200, Response{Status: 200, Message: "", Data: logs})
 		})
 	}
 	
 	iris.Listen(":9800")
-}
-
-func multi(c redis.Conn, action func(c redis.Conn)) (ret interface{}, err error) {
-	c.Send("MULTI")
-	action(c)
-	
-	return c.Do("EXEC")
 }

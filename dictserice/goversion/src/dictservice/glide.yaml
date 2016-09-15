@@ -5,3 +5,9 @@ import:
   subpackages:
   - iris
 - package: github.com/itang/gotang
+- package: gopkg.in/redis.v4
+  version: ^4.1.10
+- package: github.com/kardianos/osext
+- package: github.com/uber-go/zap
+- package: github.com/uber-go/atomic
+  version: ^1.0.0
