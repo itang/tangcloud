@@ -14,7 +14,11 @@ drop.resource("posts", PostController())
 
 drop.get("/ping") {
     _ in
-    return "pong"
+    //return try JSON(node: ["message": "pong"])
+    return try JSON(node: [
+            "message": Node.string("pong"),
+            "version": 0.1
+    ])
 }
 
 let log = LogController()
