@@ -11,14 +11,23 @@ var ping = new Vue({
 var client =
     (function () {
         function ping(callback) {
-            var xhttp = new XMLHttpRequest();
+            /*var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     callback(JSON.parse(this.responseText));
                 }
             };
             xhttp.open("GET", "/ping", true);
-            xhttp.send();
+            xhttp.send();*/
+
+            axios.get('/ping')
+                .then(function (response) {
+                    console.log(response);
+                    callback(response.data);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
         }
 
         return { ping: ping };
@@ -33,7 +42,18 @@ var client =
 
 
 
+/*
 
+  axios({
+     method: 'post',
+     url: config.SERVER_URL + 'getData',
+     data: { id: '1234' },
+     headers: {
+       'Content-Type': 'application/json'
+    }
+});
+
+*/
 
 
 
