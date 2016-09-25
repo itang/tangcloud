@@ -10,6 +10,7 @@ def help():
 
 def start():
     """nginx start"""
+    local('[ -d "./logs" ] || mkdir logs')
     local('nginx -p `pwd`/ -c conf/nginx.conf')
 
 
