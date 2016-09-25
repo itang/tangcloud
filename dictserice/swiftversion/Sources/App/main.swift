@@ -23,15 +23,17 @@ drop.get("/ping") {
     ])
 }
 
-let log = LogController()
-drop.get("dict/logs") {
-    req in
-    return try log.index(request: req)
-}
+drop.group("api") { api in
+    let log = LogController()
+    api.get("dict/logs") {
+        req in
+        return try log.index(request: req)
+    }
 
-drop.post("dict/logs") {
-    req in
-    return try log.create(request: req)
+    api.post("dict/logs") {
+        req in
+        return try log.create(request: req)
+    }
 }
 
 drop.run()

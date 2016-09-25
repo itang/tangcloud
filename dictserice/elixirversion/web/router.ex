@@ -12,6 +12,7 @@ defmodule Elixirversion.Router do
   scope "/", Elixirversion do
     pipe_through :browser # Use the default browser stack
 
+    get "/", IndexController, :index
     get "/ping", PingController, :ping
   end
 
@@ -19,8 +20,10 @@ defmodule Elixirversion.Router do
     plug :accepts, ["json"]
   end
 
-  scope "api", Elixirversion do
+  scope "/api", Elixirversion do
     pipe_through :api
+
+    get "/dict/logs", LogController, :list
   end
 
 end

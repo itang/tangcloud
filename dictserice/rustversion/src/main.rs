@@ -31,7 +31,7 @@ fn main() {
     router.post("/dict/logs", handles::create_logs);
     router.get("/dict/logs", handles::list_logs);
 
-    info!("Listen on :3000...");
+    info!("Listen on :8080...");
     let chain = Chain::new(router);
-    Iron::new(chain).http("localhost:3000").unwrap();
+    Iron::new(chain).http("localhost:8080").unwrap();
 }

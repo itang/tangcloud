@@ -1,15 +1,22 @@
 //use strict;;
 
 var ping = new Vue({
-    el: "#ping",
+    el: '#ping',
     data: {
         pingResult: ""
     }
 });
 
+var dict = new Vue({
+    el: '#dict',
+    data: {
+        logs: []
+    }
+});
+
 // client
 var client =
-    (function () {
+    (function() {
         function ping(callback) {
             /*var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
@@ -21,22 +28,44 @@ var client =
             xhttp.send();*/
 
             axios.get('/ping')
-                .then(function (response) {
+                .then(function(response) {
                     console.log(response);
                     callback(response.data);
                 })
-                .catch(function (error) {
+                .catch(function(error) {
                     console.log(error);
                 });
         }
 
-        return { ping: ping };
+        function getDictLogs(callback) {
+            axios.get('/api/dict/logs')
+                .then(function(response) {
+                    console.log(response);
+                    callback(response.data);
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        }
+
+        return {
+            ping: ping,
+            getDictLogs: getDictLogs
+        };
     })();
 
 // init
-(function () {
+(function() {
     client.ping(ret => ping.pingResult = ret);
+    client.getDictLogs(logs => {
+        console.log("logs: " + JSON.stringify(logs));
+        dict.logs = logs;
+    });
 })();
+
+
+
+
 
 
 
@@ -63,43 +92,21 @@ var client =
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var app1 = new Vue({
     el: "#app-1",
     data: {
         message: `Hello World: ${new Date()}`
     },
-    created: function () {
+    created: function() {
         console.log('app created: a is :' + this.message);
     },
-    mounted: function () {
+    mounted: function() {
         console.log("app mounted");
     },
-    updated: function () {
+    updated: function() {
         console.log("app updated");
     },
-    destroyed: function () {
+    destroyed: function() {
         console.log("app destroyed");
     }
 });
@@ -121,11 +128,13 @@ var app3 = new Vue({
 var app4 = new Vue({
     el: "#app-4",
     data: {
-        todos: [
-            { text: 'Learn JavaScript' },
-            { text: 'Learn Vue' },
-            { text: 'Build something awesome' }
-        ]
+        todos: [{
+            text: 'Learn JavaScript'
+        }, {
+            text: 'Learn Vue'
+        }, {
+            text: 'Build something awesome'
+        }]
     }
 });
 
@@ -135,7 +144,7 @@ var app5 = new Vue({
         message: 'Hello Vue.js'
     },
     methods: {
-        reverseMessage: function () {
+        reverseMessage: function() {
             this.message = this.message.split('').reverse().join('')
         }
     }
@@ -160,10 +169,12 @@ Vue.component('todo', {
 var app7 = new Vue({
     el: '#app-7',
     data: {
-        todos: [
-            { text: 'Learn JavaScript' },
-            { text: 'Learn Vue' },
-            { text: 'Build something awesome' }
-        ]
+        todos: [{
+            text: 'Learn JavaScript'
+        }, {
+            text: 'Learn Vue'
+        }, {
+            text: 'Build something awesome'
+        }]
     }
 });

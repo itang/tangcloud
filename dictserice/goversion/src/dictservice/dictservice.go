@@ -4,17 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	
+
 	"github.com/itang/gotang"
 	"github.com/kataras/iris"
-	"gopkg.in/redis.v4"
 	"github.com/uber-go/zap"
-	
+
 	"dictservice/types"
 )
 
 const (
-	DICT_LOG_KEY = "tc:dict:log"
+	DICT_LOG_KEY      = "tc:dict:log"
 	DICT_LOG_DATA_KEY = "tc:dict:log:data"
 )
 
@@ -22,11 +21,11 @@ var (
 	client *redis.Client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
-		DB:       0, // use default DB
+		DB:       0,  // use default DB
 	})
-	
-	logger = zap.New(zap.NewJSONEncoder(/*zap.NoTime()*/)) // drop timestamps in tests
-	
+
+	logger = zap.New(zap.NewJSONEncoder( /*zap.NoTime()*/ )) // drop timestamps in tests
+
 	_ = test()
 )
 
@@ -41,16 +40,16 @@ func init() {
 
 func main() {
 	fmt.Println("entry main...")
-	
+
 	pingErr := client.Ping().Err()
 	if pingErr != nil {
 		logger.Warn(client.Ping().Err().Error())
 	}
-	
+
 	iris.Any("/ping", func(ctx *iris.Context) {
 		ctx.Text(200, "pong")
 	})
-	
+
 	log := iris.Party("/dict/logs")
 	{
 		log.Post("", func(ctx *iris.Context) {
@@ -61,17 +60,17 @@ func main() {
 			} else {
 				id := time.Now().Unix()
 				logEntity := types.DictLogEntity{Id: id, DictLog: *dictLog}
-				
+
 				v, err := json.Marshal(logEntity)
 				gotang.AssertNoError(err, "err json encode")
-				
+
 				value := fmt.Sprintf("%v", id)
 				score := id
 				logEntityJson := string(v)
-				
-				client.ZAdd(DICT_LOG_KEY, redis.Z{Member:value, Score: float64(score)})
+
+				client.ZAdd(DICT_LOG_KEY, redis.Z{Member: value, Score: float64(score)})
 				client.HSet(DICT_LOG_DATA_KEY, value, logEntityJson)
-				
+
 				if err != nil {
 					ctx.JSON(500, types.Response{Status: 500, Message: err.Error()})
 				} else {
@@ -79,10 +78,10 @@ func main() {
 				}
 			}
 		})
-		
+
 		log.Get("", func(ctx *iris.Context) {
 			logger.Info("Get /dict/logs")
-			
+
 			reply := client.HVals(DICT_LOG_DATA_KEY)
 			if reply.Err() != nil {
 				fmt.Printf("error: %v", reply.Err())
@@ -95,11 +94,11 @@ func main() {
 					gotang.AssertNoError(err, "json decode")
 					logs = append(logs, log)
 				}
-				
+
 				ctx.JSON(200, types.Response{Status: 200, Message: "", Data: logs})
 			}
 		})
 	}
-	
-	iris.Listen(":9800")
+
+	iris.Listen(":8080")
 }
