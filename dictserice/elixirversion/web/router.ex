@@ -13,7 +13,6 @@ defmodule Elixirversion.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", IndexController, :index
-    get "/ping", PingController, :ping
   end
 
   pipeline :api do
@@ -23,6 +22,7 @@ defmodule Elixirversion.Router do
   scope "/api", Elixirversion do
     pipe_through :api
 
+    get "/ping", PingController, :ping
     get "/dict/logs", LogController, :list
   end
 

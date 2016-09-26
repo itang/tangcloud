@@ -27,7 +27,7 @@ var client =
             xhttp.open("GET", "/ping", true);
             xhttp.send();*/
 
-            axios.get('/ping')
+            axios.get('/api/ping')
                 .then(function(response) {
                     console.log(response);
                     callback(response.data);

@@ -12,18 +12,16 @@ drop.get {
     Response(redirect: "/index.html")
 }
 
-drop.resource("posts", PostController())
-
-drop.get("/ping") {
-    _ in
-    //return try JSON(node: ["message": "pong"])
-    return try JSON(node: [
-            "message": Node.string("pong"),
-            "version": 0.1
-    ])
-}
-
 drop.group("api") { api in
+    api.get("ping") {
+        _ in
+        //return try JSON(node: ["message": "pong"])
+        return try JSON(node: [
+                "message": Node.string("pong"),
+                "version": 0.1
+        ])
+    }
+
     let log = LogController()
     api.get("dict/logs") {
         req in
