@@ -9,8 +9,7 @@ defmodule Elixirversion.LogController do
     IO.inspect ret
 
     json conn,  Enum.map(ret, fn it ->
-      {:ok, log} = JSON.decode(it)
-      log
+      Poison.Parser.parse!(it)
     end)
   end
 end

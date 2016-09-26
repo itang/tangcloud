@@ -33,7 +33,7 @@ defmodule Elixirversion.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:redix, ">= 0.0.0"},
-     {:json, "~> 1.0"},
+     #{:json, "~> 1.0"},
    ]
   end
 end
