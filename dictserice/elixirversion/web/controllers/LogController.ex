@@ -2,18 +2,21 @@ defmodule Elixirversion.LogController do
   use Elixirversion.Web, :controller
 
   def list(conn, _params) do
-    {:ok, redis} = Redix.start_link()
+    with {:ok, redis} <- Redix.start_link(),
+         IO.puts("DEBUG: start link for redis"),
+         {:ok, ret} <- Redix.command(redis, ~w(HVALS tc:dict:log:data)) do
 
-    {:ok, ret} = Redix.command(redis, ~w(HVALS tc:dict:log:data))
+        IO.inspect ret
 
-    IO.inspect ret
+        # json conn,  Enum.map(ret, fn it ->
+        #   Poison.Parser.parse!(it)
+        # end)
 
-    # json conn,  Enum.map(ret, fn it ->
-    #   Poison.Parser.parse!(it)
-    # end)
-
-    ret = "[#{Enum.join(ret, ", ")}]"
-    jsonr conn, ret
+        ret = "[#{Enum.join(ret, ", ")}]"
+        jsonr conn, ret
+    else
+        _ -> conn |> put_status(500) |> json([])
+    end
   end
 
   defp jsonr(conn, content) when is_binary(content) do
