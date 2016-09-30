@@ -56,10 +56,10 @@ var client =
 
 // init
 (function() {
-    client.ping(ret => ping.pingResult = ret);
+    client.ping(ret => ping.pingResult = (ret.data ? {message: ret.data } : ret));
     client.getDictLogs(logs => {
         console.log("logs: " + JSON.stringify(logs));
-        dict.logs = logs;
+        dict.logs = (logs.data || logs);
     });
 })();
 

@@ -13,7 +13,8 @@ const DICT_LOG_KEY: &'static str = "tc:dict:log";
 const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
 
 pub fn ping(_: &mut Request) -> IronResult<Response> {
-    return Ok(Response::with((iron::status::Ok, "pong")))
+    json_ok(&ROk { data: "pong" })
+    // return Ok(Response::with((iron::status::Ok, "pong")))
 }
 
 pub fn create_logs(req: &mut Request) -> IronResult<Response> {
