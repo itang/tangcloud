@@ -1,9 +1,10 @@
 buildscript {
     ext {
-        kotlinVersion = '1.0.3'
-        springbootVersion = '1.4.0.RELEASE'
+        kotlinVersion = '1.0.4'
+        springbootVersion = '1.4.1.RELEASE'
     }
     repositories {
+        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -21,9 +22,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-    maven {
-        url "http://www.haoshuju.net:8078/"
-    }
+    jcenter()
     mavenCentral()
 }
 

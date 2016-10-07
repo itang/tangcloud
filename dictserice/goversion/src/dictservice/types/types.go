@@ -1,5 +1,6 @@
 package types
 
+import "fmt"
 
 type DictLog struct {
 	From     string `json:"from"`
@@ -19,4 +20,8 @@ type Response struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
+}
+
+func init() {
+	fmt.Printf("types package init...")
 }

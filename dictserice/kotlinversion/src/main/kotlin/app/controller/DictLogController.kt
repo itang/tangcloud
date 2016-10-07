@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 
 
 @RestController
-@RequestMapping("/dict/logs")
+@RequestMapping("/api/dict/logs")
 class DictLogController(
         @Autowired private val dictLogService: DictLogService
 ) {
