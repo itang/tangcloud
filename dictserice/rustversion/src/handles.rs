@@ -18,8 +18,6 @@ pub fn ping(_: &mut Request) -> IronResult<Response> {
 impl<'a> LogController<'a> {
     pub fn create_logs(&self, req: &mut Request) -> IronResult<Response> {
         info!("create_logs...");
-        let log_service = LogServiceImpl {};
-
         let log = {
             let log_opt = try!(req.get::<bodyparser::Struct<DictLog>>()
                 .map_err(|err| badrequest_error(err, "解析json出错")));
@@ -38,9 +36,7 @@ impl<'a> LogController<'a> {
                         });
         }
 
-
         let id = timestamp() as i64;
-
         let entity = DictLogEntity {
             id: id,
             from: log.from,
@@ -49,21 +45,18 @@ impl<'a> LogController<'a> {
             to_lang: log.to_lang,
         };
 
-        let _: () = try!(log_service.create(&entity)
+        let _: () = try!(self.log_service
+            .create(&entity)
             .map_err(|err| server_error(err, "log service create error")));
-
 
         json(iron::status::Created, &ROk { data: entity })
     }
 
     pub fn list_logs(&self, _: &mut Request) -> IronResult<Response> {
         info!("list_logs...");
-
-        let log_service = LogServiceImpl {};
-
-        let res: Vec<DictLogEntity> = try!(log_service.find_all()
+        let res: Vec<DictLogEntity> = try!(self.log_service
+            .find_all()
             .map_err(|err| server_error(err, "log service find_all error")));
-
         json_ok(&ROk { data: res })
     }
 }
