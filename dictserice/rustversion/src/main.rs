@@ -17,25 +17,35 @@ extern crate log;
 extern crate log4rs;
 extern crate r2d2;
 extern crate r2d2_redis;
+extern crate mount;
 
 mod global;
 mod utils;
 mod types;
 mod handles;
-
+mod models;
 
 use iron::prelude::*;
 use router::Router;
+use mount::Mount;
 
 fn main() {
     log4rs::init_file("config/log4rs.toml", Default::default()).unwrap();
 
-    let mut router = Router::new();
-    router.any("/api/ping", handles::ping, "ping");
-    router.post("/api/dict/logs", handles::create_logs, "logs_create");
-    router.get("/api/dict/logs", handles::list_logs, "logs_list");
+    let mut api_router = Router::new();
+    api_router.any("/ping", handles::ping, "ping");
+    api_router.post("/dict/logs",
+                    |req: &mut Request| global::LOG_CONTROLLER.create_logs(req),
+                    "logs_create");
+    api_router.get("/dict/logs",
+                   |req: &mut Request| global::LOG_CONTROLLER.list_logs(req),
+                   "logs_list");
+
+    let mut mount = Mount::new();
+    mount.mount("/api", api_router);
 
     info!("Listen on :8080...");
-    let chain = Chain::new(router);
-    Iron::new(chain).http("localhost:8080").unwrap();
+    // let chain = Chain::new(router);
+
+    Iron::new(mount).http("localhost:8080").unwrap();
 }

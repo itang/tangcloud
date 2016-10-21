@@ -17,6 +17,21 @@ impl error::Error for EmptyError {
     }
 }
 
+#[derive(Debug)]
+pub struct ServerError(pub String);
+
+impl fmt::Display for ServerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ServerError error {}", self.0)
+    }
+}
+
+impl error::Error for ServerError {
+    fn description(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DictLog {
     pub from_lang: Option<String>,

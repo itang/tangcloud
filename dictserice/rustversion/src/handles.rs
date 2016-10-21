@@ -1,82 +1,69 @@
 use iron;
 use iron::prelude::*;
-use redis::Commands;
 use bodyparser;
-use serde_json;
 
 use types::*;
 use utils::*;
-use global::*;
+use models::*;
 
-
-const DICT_LOG_KEY: &'static str = "tc:dict:log";
-const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
+pub struct LogController<'a> {
+    pub log_service: &'a LogService,
+}
 
 pub fn ping(_: &mut Request) -> IronResult<Response> {
     json_ok(&ROk { data: "pong" })
     // return Ok(Response::with((iron::status::Ok, "pong")))
 }
 
-pub fn create_logs(req: &mut Request) -> IronResult<Response> {
-    info!("create_logs...");
-    let log = {
-        let log_opt = try!(req.get::<bodyparser::Struct<DictLog>>()
-            .map_err(|err| badrequest_error(err, "解析json出错")));
-        try!(log_opt.ok_or(IronError::new(EmptyError("空json".to_string()),
-                                          (iron::status::BadRequest, "解析json出错"))))
-    };
+impl<'a> LogController<'a> {
+    pub fn create_logs(&self, req: &mut Request) -> IronResult<Response> {
+        info!("create_logs...");
+        let log_service = LogServiceImpl {};
 
-    if log.from == "" {
-        return json(iron::status::BadRequest,
-                    &RError::<()> {
-                        errors: vec![RErrorItem::builder()
-                                         .title("'from' can't by empty".into())
-                                         .source("log.from".into())
-                                         .code("123".into())
-                                         .build()],
-                    });
+        let log = {
+            let log_opt = try!(req.get::<bodyparser::Struct<DictLog>>()
+                .map_err(|err| badrequest_error(err, "解析json出错")));
+            try!(log_opt.ok_or(IronError::new(EmptyError("空json".to_string()),
+                                              (iron::status::BadRequest, "解析json出错"))))
+        };
+
+        if log.from == "" {
+            return json(iron::status::BadRequest,
+                        &RError::<()> {
+                            errors: vec![RErrorItem::builder()
+                                             .title("'from' can't by empty".into())
+                                             .source("log.from".into())
+                                             .code("123".into())
+                                             .build()],
+                        });
+        }
+
+
+        let id = timestamp() as i64;
+
+        let entity = DictLogEntity {
+            id: id,
+            from: log.from,
+            from_lang: log.from_lang,
+            to: log.to,
+            to_lang: log.to_lang,
+        };
+
+        let _: () = try!(log_service.create(&entity)
+            .map_err(|err| server_error(err, "log service create error")));
+
+
+        json(iron::status::Created, &ROk { data: entity })
     }
 
+    pub fn list_logs(&self, _: &mut Request) -> IronResult<Response> {
+        info!("list_logs...");
 
-    let id = timestamp() as i64;
+        let log_service = LogServiceImpl {};
 
-    let entity = DictLogEntity {
-        id: id,
-        from: log.from,
-        from_lang: log.from_lang,
-        to: log.to,
-        to_lang: log.to_lang,
-    };
-    let log_entity_json = try!(serde_json::to_string(&entity)
-        .map_err(|err| server_error(err, "解析json出错")));
+        let res: Vec<DictLogEntity> = try!(log_service.find_all()
+            .map_err(|err| server_error(err, "log service find_all error")));
 
-
-    info!("log_entity_json: {:?}", log_entity_json);
-
-    let conn = try!(conn_pool().get().map_err(|err| server_error(err, "Redis无法访问")));
-
-    let value = format!("{}", id);
-    let score = id;
-
-    let _: () = try!(conn.zadd(DICT_LOG_KEY, &value, score)
-        .map_err(|err| server_error(err, "Redis操作出错")));
-    let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, &value, log_entity_json)
-        .map_err(|err| server_error(err, "Redis操作出错")));
-
-    json(iron::status::Created, &ROk { data: entity })
-}
-
-pub fn list_logs(_: &mut Request) -> IronResult<Response> {
-    info!("list_logs...");
-
-    let conn = try!(conn_pool().get().map_err(|err| server_error(err, "Redis无法访问")));
-
-    let res: Vec<String> = try!(conn.hvals(DICT_LOG_DATA_KEY)
-        .map_err(|err| server_error(err, "Redis操作出错")));
-    info!("res: {:?}", res);
-    let res: Vec<DictLogEntity> = res.into_iter()
-        .map(|it| serde_json::from_str(&it).unwrap())
-        .collect();
-
-    json_ok(&ROk { data: res })
+        json_ok(&ROk { data: res })
+    }
 }
