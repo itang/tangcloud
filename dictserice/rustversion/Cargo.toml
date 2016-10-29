@@ -9,17 +9,17 @@ iron = "0.4.0"
 lazy_static = "0.2.1"
 log = "0.3.6"
 mount = "0.2.1"
-r2d2 = "0.7.0"
+r2d2 = "0.7.1"
 redis = "0.7.0"
 router = "0.4.0"
 serde = "0.8.4"
-serde_derive = "0.8.12"
-serde_json = "0.8.1"
+serde_derive = "0.8.16"
+serde_json = "0.8.3"
 time = "0.1.35"
 
 [dependencies.log4rs]
-features = ["toml"]
-version = "0.4.8"
+features = ["toml_format"]
+version = "0.5.0"
 
 [dependencies.r2d2_redis]
 git = "https://github.com/sorccu/r2d2-redis"
