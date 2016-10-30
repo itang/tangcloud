@@ -17,4 +17,7 @@ def update():
 
 def run():
     """run"""
+    import subprocess
+    process = subprocess.Popen('cd ../env;redis-server redis.conf', shell=True, stdout=subprocess.PIPE)
+    # process.wait()
     local('cargo run')
