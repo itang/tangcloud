@@ -6,6 +6,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
 import com.fasterxml.jackson.module.kotlin.*
+import io.vertx.core.Handler
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.LoggerHandler
@@ -14,6 +15,39 @@ import io.vertx.ext.web.handler.TimeoutHandler
 import io.vertx.redis.RedisClient
 import io.vertx.redis.RedisOptions
 
+data class DictLogReq(
+        val from: String,
+        val fromLang: String = "en",
+        val to: String,
+        val toLang: String = "zh"
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DictLogEntity(
+        val id: Long,
+        val from: String,
+        val fromLang: String? = "en",
+        val to: String,
+        val toLang: String? = "zh",
+        val createdAt: String? = null
+)
+
+enum class Status {
+    Success, Failure
+}
+
+data class Response<out T>(val status: Status, val message: String? = null, val data: T? = null)
+
+class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
+    override fun handle(ctx: RoutingContext) {
+        ctx.response().putHeader("Content-Type", "application/json; charset=utf-8")
+        ctx.next()
+    }
+
+    companion object {
+        val instance = ResponseJSONHandler()
+    }
+}
 
 class DictServcieVerticle : AbstractVerticle() {
 
@@ -31,7 +65,7 @@ class DictServcieVerticle : AbstractVerticle() {
         val redis = RedisClient.create(vertx, redisConfig)
 
         val mainRouter = Router.router(vertx).apply {
-            route("/*").handler(LoggerHandler.create())
+            route().handler(LoggerHandler.create())
 
             get("/").handler { ctx ->
                 ctx.renderJSON("Dict Service")
@@ -39,14 +73,10 @@ class DictServcieVerticle : AbstractVerticle() {
         }
 
         val apiRouter = Router.router(vertx).apply {
-            route("/*").handler(ResponseTimeHandler.create())
-            route("/*").handler(BodyHandler.create())
-            route("/*").handler(TimeoutHandler.create(8000))
-            route("/*").handler { ctx ->
-                ctx.response().putHeader("Content-Type", "application/json; charset=utf-8")
-
-                ctx.next()
-            }
+            route().handler(ResponseTimeHandler.create())
+            post().handler(BodyHandler.create())
+            route().handler(TimeoutHandler.create(8000))
+            route().handler(ResponseJSONHandler.instance)
 
             route("/ping").handler { ctx ->
                 ctx.renderJSON(mapOf("message" to "pong"))
@@ -59,9 +89,7 @@ class DictServcieVerticle : AbstractVerticle() {
                 val member = id.toString()
                 redis.transaction().apply {
                     zadd(DICT_LOG_KEY, score, member) { res ->
-                        if (res.succeeded()) {
-                            // so something...
-                        } else {
+                        if (res.failed()) {
                             res.cause()?.printStackTrace()
                             ctx.renderJSON(Response<Unit>(Status.Failure))
                         }
@@ -69,12 +97,9 @@ class DictServcieVerticle : AbstractVerticle() {
 
                     val dictLogEntity = DictLogEntity(id, from = req.from, to = req.to)
                     hset(DICT_LOG_DATA_KEY, member, mapper.writeValueAsString(dictLogEntity)) { res ->
-                        if (res.succeeded()) {
-                            // so something...
-                        } else {
+                        if (res.failed())
                             res.cause()?.printStackTrace()
-                            ctx.renderJSON(Response<Unit>(Status.Failure))
-                        }
+                        ctx.renderJSON(Response<Unit>(Status.Failure))
                     }
                 }
 
@@ -104,7 +129,7 @@ class DictServcieVerticle : AbstractVerticle() {
     }
 
     private inline fun <reified T : Any> RoutingContext.bindJSON(): T {
-        return return jacksonObjectMapper().readValue<T>(this.bodyAsString)
+        return jacksonObjectMapper().readValue<T>(this.bodyAsString)
     }
 
     private fun RoutingContext.renderJSON(obj: Any) {
@@ -113,25 +138,3 @@ class DictServcieVerticle : AbstractVerticle() {
 
 }
 
-data class DictLogReq(
-        val from: String,
-        val fromLang: String = "en",
-        val to: String,
-        val toLang: String = "zh"
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class DictLogEntity(
-        val id: Long,
-        val from: String,
-        val fromLang: String? = "en",
-        val to: String,
-        val toLang: String? = "zh",
-        val createdAt: String? = null
-)
-
-enum class Status {
-    Success, Failure
-}
-
-data class Response<out T>(val status: Status, val message: String? = null, val data: T? = null)
