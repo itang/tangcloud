@@ -78,6 +78,18 @@ class DictServcieVerticle : AbstractVerticle() {
             route().handler(TimeoutHandler.create(8000))
             route().handler(ResponseJSONHandler.instance)
 
+            route().failureHandler { ctx ->
+                ctx.failure()?.let {
+                    println(it.message)
+                }
+
+                ctx.renderJSON(Response<Unit>(Status.Failure, ctx.failure()?.message))
+            }
+
+            route("/exception").handler { ctx ->
+                throw RuntimeException("test exception")
+            }
+
             route("/ping").handler { ctx ->
                 ctx.renderJSON(mapOf("message" to "pong"))
             }
