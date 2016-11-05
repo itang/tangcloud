@@ -54,8 +54,7 @@ class DictServcieVerticle : AbstractVerticle() {
     private lateinit var httpServer: HttpServer
 
     private val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-    var redisConfig = RedisOptions().setHost("127.0.0.1")
+    private val redisConfig = RedisOptions().setHost("127.0.0.1")
 
     private val DICT_LOG_KEY = "tc:dict:log"
     private val DICT_LOG_DATA_KEY = "tc:dict:log:data"
@@ -99,6 +98,7 @@ class DictServcieVerticle : AbstractVerticle() {
                 val id = System.currentTimeMillis()
                 val score = id.toDouble()
                 val member = id.toString()
+
                 redis.transaction().apply {
                     zadd(DICT_LOG_KEY, score, member) { res ->
                         if (res.failed()) {
@@ -115,6 +115,7 @@ class DictServcieVerticle : AbstractVerticle() {
                     }
                 }
 
+                //TODO: TBC 有异步任务执行时， 在此返回结果合适?
                 ctx.renderJSON(Response<Unit>(Status.Success))
             }
 
@@ -141,12 +142,11 @@ class DictServcieVerticle : AbstractVerticle() {
     }
 
     private inline fun <reified T : Any> RoutingContext.bindJSON(): T {
-        return jacksonObjectMapper().readValue<T>(this.bodyAsString)
+        return mapper.readValue(this.bodyAsString)
     }
 
     private fun RoutingContext.renderJSON(obj: Any) {
-        this.response().end(mapper.writeValueAsString(obj))
+        response().end(mapper.writeValueAsString(obj))
     }
 
 }
-
