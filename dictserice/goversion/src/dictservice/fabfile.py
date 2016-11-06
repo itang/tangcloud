@@ -18,3 +18,8 @@ def test():
 def bench():
     """bench"""
     local('wrk http://localhost:8080/api/dict/logs -d30 -c100 -t4')
+
+
+def dist():
+    """dist for 386"""
+    local('GOPATH=$PWD/../.. gox -os="linux" -arch="386"')
