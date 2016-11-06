@@ -23,3 +23,4 @@ def bench():
 def dist():
     """dist for 386"""
     local('GOPATH=$PWD/../.. gox -os="linux" -arch="386"')
+    local('upx dictservice_linux_386')
