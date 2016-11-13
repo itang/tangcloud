@@ -81,11 +81,11 @@ func ListLogs(ctx *iris.Context) {
 		ctx.Error(reply.Err().Error(), 500)
 	} else {
 		logs := make([]types.DictLog, len(reply.Val()))
-		for _, v := range reply.Val() {
+		for i, v := range reply.Val() {
 			log := types.DictLog{}
 			err := json.Unmarshal([]byte(v), &log)
 			gotang.AssertNoError(err, "json decode")
-			logs = append(logs, log)
+			logs[i] = log
 		}
 
 		ctx.JSON(200, types.Response{Status: 200, Message: "", Data: logs})
