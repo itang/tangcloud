@@ -2,11 +2,10 @@ package app
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.DeserializationFeature
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
 import com.fasterxml.jackson.module.kotlin.*
-import io.vertx.core.Handler
+import io.vertx.core.*
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.LoggerHandler
@@ -99,24 +98,23 @@ class DictServcieVerticle : AbstractVerticle() {
                 val score = id.toDouble()
                 val member = id.toString()
 
+                val fut1 = Future.future<String>()
+                val fut2 = Future.future<String>()
                 redis.transaction().apply {
-                    zadd(DICT_LOG_KEY, score, member) { res ->
-                        if (res.failed()) {
-                            res.cause()?.printStackTrace()
-                            ctx.renderJSON(Response<Unit>(Status.Failure))
-                        }
-                    }
+                    zadd(DICT_LOG_KEY, score, member, fut1.completer())
 
                     val dictLogEntity = DictLogEntity(id, from = req.from, to = req.to)
-                    hset(DICT_LOG_DATA_KEY, member, mapper.writeValueAsString(dictLogEntity)) { res ->
-                        if (res.failed())
-                            res.cause()?.printStackTrace()
-                        ctx.renderJSON(Response<Unit>(Status.Failure))
-                    }
+                    hset(DICT_LOG_DATA_KEY, member, mapper.writeValueAsString(dictLogEntity), fut2.completer())
                 }
 
-                //TODO: TBC 有异步任务执行时， 在此返回结果合适?
-                ctx.renderJSON(Response<Unit>(Status.Success))
+                await(listOf(fut1, fut2)) { ar ->
+                    if (ar.succeeded()) {
+                        ctx.renderJSON(Response<Unit>(Status.Success))
+                    } else {
+                        ar.cause()?.printStackTrace()
+                        ctx.renderJSON(Response<Unit>(Status.Failure, message = ar.cause()?.message))
+                    }
+                }
             }
 
             get("/dict/logs").handler { ctx ->
@@ -139,6 +137,10 @@ class DictServcieVerticle : AbstractVerticle() {
 
     override fun stop() {
         httpServer.close()
+    }
+
+    private fun await(list: List<Future<*>>, handler: (AsyncResult<CompositeFuture>) -> Unit) {
+        CompositeFuture.all(list).setHandler(handler)
     }
 
     private inline fun <reified T : Any> RoutingContext.bindJSON(): T {
