@@ -13,6 +13,7 @@ import io.vertx.ext.web.handler.ResponseTimeHandler
 import io.vertx.ext.web.handler.TimeoutHandler
 import io.vertx.redis.RedisClient
 import io.vertx.redis.RedisOptions
+import java.time.Duration
 
 data class DictLogReq(
         val from: String,
@@ -35,7 +36,10 @@ enum class Status {
     Success, Failure
 }
 
-data class Response<out T>(val status: Status, val message: String? = null, val data: T? = null)
+sealed class Result(val status: Status, open val message: String? = null) {
+    class Ok<out T>(override val message: String? = null, val data: T? = null) : Result(Status.Success, message)
+    class Err<out E>(override val message: String? = null, val data: E? = null) : Result(Status.Failure, message)
+}
 
 class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
     override fun handle(ctx: RoutingContext) {
@@ -46,6 +50,11 @@ class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
     companion object {
         val instance = ResponseJSONHandler()
     }
+}
+
+object GlobalConfig {
+    val PORT = 8080
+    val TIMEOUT = Duration.ofSeconds(8)
 }
 
 class DictServcieVerticle : AbstractVerticle() {
@@ -66,14 +75,14 @@ class DictServcieVerticle : AbstractVerticle() {
             route().handler(LoggerHandler.create())
 
             get("/").handler { ctx ->
-                ctx.renderJSON("Dict Service")
+                ctx.renderJSON(Result.Ok<Unit>(message = "Dict Service"))
             }
         }
 
         val apiRouter = Router.router(vertx).apply {
             route().handler(ResponseTimeHandler.create())
             post().handler(BodyHandler.create())
-            route().handler(TimeoutHandler.create(8000))
+            route().handler(TimeoutHandler.create(GlobalConfig.TIMEOUT.toMillis()))
             route().handler(ResponseJSONHandler.instance)
 
             route().failureHandler { ctx ->
@@ -81,15 +90,15 @@ class DictServcieVerticle : AbstractVerticle() {
                     println(it.message)
                 }
 
-                ctx.renderJSON(Response<Unit>(Status.Failure, ctx.failure()?.message))
+                ctx.renderJSON(Result.Err<Unit>(ctx.failure()?.message))
+            }
+
+            route("/ping").handler { ctx ->
+                ctx.renderJSON(Result.Ok(data = mapOf("message" to "pong")))
             }
 
             route("/exception").handler { ctx ->
                 throw RuntimeException("test exception")
-            }
-
-            route("/ping").handler { ctx ->
-                ctx.renderJSON(mapOf("message" to "pong"))
             }
 
             post("/dict/logs").handler { ctx ->
@@ -109,10 +118,10 @@ class DictServcieVerticle : AbstractVerticle() {
 
                 await(listOf(fut1, fut2)) { ar ->
                     if (ar.succeeded()) {
-                        ctx.renderJSON(Response<Unit>(Status.Success))
+                        ctx.renderJSON(Result.Ok<Unit>())
                     } else {
                         ar.cause()?.printStackTrace()
-                        ctx.renderJSON(Response<Unit>(Status.Failure, message = ar.cause()?.message))
+                        ctx.renderJSON(Result.Err<Unit>(message = ar.cause()?.message))
                     }
                 }
             }
@@ -120,10 +129,10 @@ class DictServcieVerticle : AbstractVerticle() {
             get("/dict/logs").handler { ctx ->
                 redis.hvals(DICT_LOG_DATA_KEY) { res ->
                     if (res.succeeded()) {
-                        ctx.renderJSON(Response(Status.Success, data = res.result().map { mapper.readValue<DictLogEntity>(it.toString()) }))
+                        ctx.renderJSON(Result.Ok(data = res.result().map { mapper.readValue<DictLogEntity>(it.toString()) }))
                     } else {
                         res.cause()?.printStackTrace()
-                        ctx.renderJSON(Response<Unit>(Status.Failure))
+                        ctx.renderJSON(Result.Err<Unit>())
                     }
                 }
             }
@@ -132,7 +141,7 @@ class DictServcieVerticle : AbstractVerticle() {
 
         mainRouter.mountSubRouter("/api", apiRouter)
 
-        httpServer.requestHandler { req -> mainRouter.accept(req) }.listen(8080)
+        httpServer.requestHandler { req -> mainRouter.accept(req) }.listen(GlobalConfig.PORT)
     }
 
     override fun stop() {
@@ -147,7 +156,7 @@ class DictServcieVerticle : AbstractVerticle() {
         return mapper.readValue(this.bodyAsString)
     }
 
-    private fun RoutingContext.renderJSON(obj: Any) {
+    private fun RoutingContext.renderJSON(obj: Result) {
         response().end(mapper.writeValueAsString(obj))
     }
 
