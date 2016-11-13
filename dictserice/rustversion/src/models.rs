@@ -20,36 +20,33 @@ const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
 
 impl LogService for LogServiceImpl {
     fn create(&self, entity: &DictLogEntity) -> Result<(), ServerError> {
-        let log_entity_json = try!(serde_json::to_string(entity)
-            .map_err(|err| ServerError(err.to_string())));
-
+        let log_entity_json =
+            serde_json::to_string(entity).map_err(|err| ServerError(err.to_string()))?;
 
         info!("log_entity_json: {:?}", log_entity_json);
 
-        let conn = try!(conn_pool()
-            .get()
-            .map_err(|err| ServerError(err.to_string())));
+        let conn = conn_pool().get()
+            .map_err(|err| ServerError(err.to_string()))?;
 
         let id = timestamp() as i64;
         let value = format!("{}", id);
         let score = id;
 
-        let _: () = try!(conn.zadd(DICT_LOG_KEY, &value, score)
-            .map_err(|err| ServerError(err.to_string())));
+        let _: () = conn.zadd(DICT_LOG_KEY, &value, score)
+            .map_err(|err| ServerError(err.to_string()))?;
 
-        let _: () = try!(conn.hset(DICT_LOG_DATA_KEY, &value, log_entity_json)
-            .map_err(|err| ServerError(err.to_string())));
+        let _: () = conn.hset(DICT_LOG_DATA_KEY, &value, log_entity_json)
+            .map_err(|err| ServerError(err.to_string()))?;
 
         Ok(())
     }
 
     fn find_all(&self) -> Result<Vec<DictLogEntity>, ServerError> {
-        let conn = try!(conn_pool()
-            .get()
-            .map_err(|err| ServerError(err.to_string())));
+        let conn = conn_pool().get()
+            .map_err(|err| ServerError(err.to_string()))?;
 
-        let res: Vec<String> = try!(conn.hvals(DICT_LOG_DATA_KEY)
-            .map_err(|err| ServerError(err.to_string())));
+        let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY)
+            .map_err(|err| ServerError(err.to_string()))?;
         info!("res: {:?}", res);
         let res: Vec<DictLogEntity> = res.into_iter()
             .map(|it| serde_json::from_str(&it).unwrap())
