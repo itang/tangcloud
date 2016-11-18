@@ -1,0 +1,2 @@
+web: mix phoenix.server
+redis: cd ../env/; redis-server redis.conf

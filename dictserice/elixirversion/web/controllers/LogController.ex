@@ -22,7 +22,7 @@ defmodule Elixirversion.LogController do
     end
   end
 
-  def create(conn, params) do
+  def create(conn, %{"from" => _, "to" => _} = params) do
     IO.inspect params
 
     id = :os.system_time
