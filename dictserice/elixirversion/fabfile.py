@@ -10,6 +10,4 @@ def help():
 
 def run():
     """run"""
-    local('mix phoenix.server')
-
-
+    local('foreman start')

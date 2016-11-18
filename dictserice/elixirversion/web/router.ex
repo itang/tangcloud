@@ -24,7 +24,10 @@ defmodule Elixirversion.Router do
     pipe_through :api
 
     get "/ping", PingController, :ping
+
+    post "/dict/logs", LogController, :create
     get "/dict/logs", LogController, :list
+
   end
 
 end

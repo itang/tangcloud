@@ -6,3 +6,6 @@ Config/secrets
 
 .idea/
 .vscode/
+
+*.pyc
+
