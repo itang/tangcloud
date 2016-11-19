@@ -16,3 +16,6 @@ erl_crash.dump
 /config/prod.secret.exs
 
 *.pyc
+
+*.iml
+.idea

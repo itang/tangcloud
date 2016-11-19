@@ -27,7 +27,6 @@ defmodule Elixirversion.Router do
 
     post "/dict/logs", LogController, :create
     get "/dict/logs", LogController, :list
-
   end
 
 end

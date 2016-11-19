@@ -8,17 +8,12 @@ defmodule Elixirversion.LogController do
     with {:ok, redis} <- Redix.start_link(),
          IO.puts("DEBUG: start link for redis"),
          {:ok, ret} <- Redix.command(redis, ~w(HVALS tc:dict:log:data)) do
+      IO.inspect ret
 
-        IO.inspect ret
-
-        # json conn,  Enum.map(ret, fn it ->
-        #   Poison.Parser.parse!(it)
-        # end)
-
-        ret = "[#{Enum.join(ret, ", ")}]"
-        jsonr conn, ret
+      ret = "[#{Enum.join(ret, ", ")}]"
+      json_raw conn, ret
     else
-        _ -> conn |> put_status(500) |> json([])
+      _ -> conn |> put_status(500) |> json([])
     end
   end
 
@@ -34,13 +29,13 @@ defmodule Elixirversion.LogController do
          {:ok, ret} <- Redix.command(redis, ["zadd", @dict_log_key, score, member]),
          {:ok, entity_json} <- Poison.encode(entity),
          {:ok, ret2} <- Redix.command(redis, ["hset", @dict_log_data_key, member, entity_json]) do
-        json conn, %{ok: true}
+      json conn, %{ok: true}
     else
-        _ -> conn |> put_status(500) |> json([])
+      _ -> conn |> put_status(500) |> json([])
     end
   end
 
-  defp jsonr(conn, content) when is_binary(content) do
+  defp json_raw(conn, content) when is_binary(content) do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, content)

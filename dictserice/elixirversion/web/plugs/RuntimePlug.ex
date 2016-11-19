@@ -8,7 +8,7 @@ defmodule Elixirversion.Plugs.RuntimePlug do
 
     Plug.Conn.register_before_send(conn, fn conn ->
       stop = System.monotonic_time()
-      diff = System.convert_time_unit(stop-start, :native, :micro_seconds)
+      diff = System.convert_time_unit(stop - start, :native, :micro_seconds)
 
       conn |> Plug.Conn.put_resp_header("x-runtime", formatted_diff(diff))
     end)
