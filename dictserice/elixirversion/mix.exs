@@ -34,6 +34,7 @@ defmodule Elixirversion.Mixfile do
      {:cowboy, "~> 1.0"},
      {:redix, ">= 0.0.0"},
      {:credo, "~> 0.5", only: [:dev, :test]},
+     {:distillery, "~> 0.10", only: [:dev]},
      #{:json, "~> 1.0"},
    ]
   end
