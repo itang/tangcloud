@@ -5,9 +5,7 @@ defmodule Elixirversion.LogController do
   @dict_log_data_key "tc:dict:log:data"
 
   def list(conn, _params) do
-    with {:ok, redis} <- Redix.start_link(),
-         IO.puts("DEBUG: start link for redis"),
-         {:ok, ret} <- Redix.command(redis, ~w(HVALS tc:dict:log:data)) do
+    with {:ok, ret} <- Redix.command(:redix, ~w(HVALS tc:dict:log:data)) do
       IO.inspect ret
 
       ret = "[#{Enum.join(ret, ", ")}]"
@@ -25,10 +23,9 @@ defmodule Elixirversion.LogController do
     member = to_string id
     entity = Map.take params, ["from", "to"]
 
-    with {:ok, redis} <- Redix.start_link(),
-         {:ok, ret} <- Redix.command(redis, ["zadd", @dict_log_key, score, member]),
+    with {:ok, ret} <- Redix.command(:redix, ["zadd", @dict_log_key, score, member]),
          {:ok, entity_json} <- Poison.encode(entity),
-         {:ok, ret2} <- Redix.command(redis, ["hset", @dict_log_data_key, member, entity_json]) do
+         {:ok, ret2} <- Redix.command(:redis, ["hset", @dict_log_data_key, member, entity_json]) do
       json conn, %{ok: true}
     else
       _ -> conn |> put_status(500) |> json([])

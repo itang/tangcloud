@@ -1,2 +1,3 @@
 web: mix phoenix.server
+www: cd ../public; nginx -p `pwd`/ -c conf/nginx.conf
 redis: cd ../env/; redis-server redis.conf
