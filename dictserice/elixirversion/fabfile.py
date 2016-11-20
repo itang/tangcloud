@@ -11,3 +11,8 @@ def help():
 def run():
     """run"""
     local('foreman start')
+
+
+def check():
+    """check"""
+    local('mix credo --strict')

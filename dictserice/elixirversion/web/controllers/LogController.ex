@@ -6,8 +6,6 @@ defmodule Elixirversion.LogController do
 
   def list(conn, _params) do
     with {:ok, ret} <- Redix.command(:redix, ~w(HVALS tc:dict:log:data)) do
-      IO.inspect ret
-
       ret = "[#{Enum.join(ret, ", ")}]"
       json_raw conn, ret
     else
@@ -16,8 +14,6 @@ defmodule Elixirversion.LogController do
   end
 
   def create(conn, %{"from" => _, "to" => _} = params) do
-    IO.inspect params
-
     id = :os.system_time
     score = id
     member = to_string id
