@@ -17,6 +17,7 @@ defmodule Elixirversion.Plugs.RuntimePlug do
     end)
   end
 
+  @spec formatted_diff(integer) :: String.t
   defp formatted_diff(diff) when diff > 1000, do: (diff |> div(1000) |> Integer.to_string) <> "ms"
   defp formatted_diff(diff), do: (diff |> Integer.to_string) <> "us"
 end

@@ -15,4 +15,5 @@ def run():
 
 def check():
     """check"""
+    local('mix dialyzer')
     local('mix credo --strict')
