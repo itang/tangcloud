@@ -9,7 +9,7 @@ extern crate time;
 extern crate iron;
 extern crate router;
 extern crate bodyparser;
-extern crate serde;
+// extern crate serde;
 extern crate serde_json;
 extern crate redis;
 #[macro_use]

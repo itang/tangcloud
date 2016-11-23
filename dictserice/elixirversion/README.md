@@ -23,3 +23,11 @@ Ready to run in production? Please [check our deployment guides](http://www.phoe
 ### Dev
 
 * dialyxir https://github.com/jeremyjh/dialyxir
+* distillery https://github.com/bitwalker/distillery
+
+
+## Deploy
+
+
+### Question?
+* https://elixirforum.com/t/is-there-any-way-to-make-cross-platform-releases/1788

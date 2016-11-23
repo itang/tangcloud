@@ -20,6 +20,6 @@ erl_crash.dump
 *.iml
 .idea
 
-/rel
+/rel/elixirversion
 
 /doc
