@@ -1,4 +1,4 @@
-  # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from fabric.api import *
 
@@ -19,26 +19,54 @@ def check():
     local('mix credo --strict')
 
 
-def dist():
+def stop_remote():
+    """restart remote"""
+    with settings(warn_only=True):
+        run('supervisorctl stop dict_elixir')
+
+
+def start_remote():
+    """restart remote"""
+    run('supervisorctl start dict_elixir')
+
+
+def restart_remote():
+    """restart remote"""
+    stop_remote()
+    start_remote()
+
+
+dist_cmds = ['mix clean', 'mix release.clean',
+             'mix deps.get --only prod', 'MIX_ENV=prod mix compile',
+             'MIX_ENV=prod mix release --env=prod --verbose']
+
+
+def dist_by_local():
     """release"""
-    local('mix clean')
-    local('mix release.clean')
-    #local('mix deps.get --only prod')
-    local('MIX_ENV=prod mix compile')
-    local('MIX_ENV=prod mix phoenix.digest')
-    local('MIX_ENV=prod mix release --env=prod --verbose')
+    for cmd in dist_cmds:
+        local(cmd)
 
 
-def deploy():
+def dist_by_docker():
+    """dist by docker"""
+    local(
+        'docker run -it -v "$PWD:/elixirversion" itang/test-erlang-i386 /bin/bash -c "mix local.hex --force;cd /elixirversion;{}"'.format(
+            ';'.join(dist_cmds)))
+
+
+def deploy(by='docker'):
     """deploy"""
-    dist()
+    if by == 'docker':
+        dist_by_docker()
+    else:
+        dist_by_local()
 
     bin_file = 'rel/elixirversion/releases/0.0.1/elixirversion.tar.gz'
     local('du -sh {}'.format(bin_file))
     with cd('/data/tang/dict'):
         put(bin_file, '.')
-        run('rm -rf dict/elixirversion')
+        run('rm -rf elixirversion')
         run('mkdir elixirversion')
         run('tar -zxf elixirversion.tar.gz -C elixirversion')
 
-        run('supervisorctl restart dict_elixir')
+        restart_remote()
