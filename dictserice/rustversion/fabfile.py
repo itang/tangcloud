@@ -21,3 +21,14 @@ def run():
     process = subprocess.Popen('cd ../env;redis-server redis.conf', shell=True, stdout=subprocess.PIPE)
     # process.wait()
     local('cargo run')
+
+
+# TODO: i386 target
+def dist_i386():
+    """dist for i368"""
+    # ref link: https://github.com/rust-lang-nursery/rustup.rs#working-with-custom-toolchains-and-local-builds
+    print('INFO: ' + '$ rustup target add i686-unknown-linux-musl')
+
+    # issues link: https://github.com/rust-cn/rust_lang_cn/issues/7
+    oi = '/usr/include/openssl'
+    local('DEP_OPENSSL_INCLUDE={0} OPENSSL_INCLUDE_DIR={0} OPENSSL_DIR=/opt/openssl cargo build --release --target i686-unknown-linux-musl'.format(oi))

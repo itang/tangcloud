@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [dependencies]
 bodyparser = "0.4.1"
+hyper = "0.9.12"
 iron = "0.4.0"
 lazy_static = "0.2.1"
 log = "0.3.6"

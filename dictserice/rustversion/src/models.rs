@@ -6,18 +6,16 @@ use utils::*;
 use types::*;
 
 
+const DICT_LOG_KEY: &'static str = "tc:dict:log";
+const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
+
+
 pub trait LogService: Send + Sync {
     fn create(&self, log: &DictLogEntity) -> Result<(), ServerError>;
     fn find_all(&self) -> Result<Vec<DictLogEntity>, ServerError>;
 }
 
-
 pub struct LogServiceImpl {}
-
-
-const DICT_LOG_KEY: &'static str = "tc:dict:log";
-const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
-
 impl LogService for LogServiceImpl {
     fn create(&self, entity: &DictLogEntity) -> Result<(), ServerError> {
         let log_entity_json =
