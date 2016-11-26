@@ -30,5 +30,5 @@ def dist_i386():
     print('INFO: ' + '$ rustup target add i686-unknown-linux-musl')
 
     # issues link: https://github.com/rust-cn/rust_lang_cn/issues/7
-    oi = '/usr/include/openssl'
-    local('DEP_OPENSSL_INCLUDE={0} OPENSSL_INCLUDE_DIR={0} OPENSSL_DIR=/opt/openssl cargo build --release --target i686-unknown-linux-musl'.format(oi))
+    ##oi = '/usr/include/openssl'
+    local('OPENSSL_STATIC=true cargo build --release --target i686-unknown-linux-musl')

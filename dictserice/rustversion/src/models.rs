@@ -16,6 +16,7 @@ pub trait LogService: Send + Sync {
 }
 
 pub struct LogServiceImpl {}
+
 impl LogService for LogServiceImpl {
     fn create(&self, entity: &DictLogEntity) -> Result<(), ServerError> {
         let log_entity_json =
