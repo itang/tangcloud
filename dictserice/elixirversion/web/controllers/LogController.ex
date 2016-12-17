@@ -21,7 +21,7 @@ defmodule Elixirversion.LogController do
 
     with {:ok, _} <- Redix.command(:redix, ["zadd", @dict_log_key, score, member]),
          {:ok, entity_json} <- Poison.encode(entity),
-         {:ok, _} <- Redix.command(:redis, ["hset", @dict_log_data_key, member, entity_json]) do
+         {:ok, _} <- Redix.command(:redix, ["hset", @dict_log_data_key, member, entity_json]) do
       json conn, %{ok: true}
     else
       _ -> conn |> put_status(500) |> json([])
