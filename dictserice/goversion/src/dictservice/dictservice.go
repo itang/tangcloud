@@ -7,9 +7,13 @@ import (
 	"github.com/labstack/echo"
 )
 
-func XRuntime(next echo.HandlerFunc) echo.HandlerFunc {
+func XRuntimeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) (err error) {
 		start := time.Now()
+
+		//link: https://golang.org/pkg/net/http/#example_ResponseWriter_trailers
+		ctx.Response().Header().Set("Trailer", "x-runtime")
+
 		err = next(ctx)
 
 		//FIXME: 未生效
@@ -21,7 +25,7 @@ func XRuntime(next echo.HandlerFunc) echo.HandlerFunc {
 func main() {
 	e := echo.New()
 
-	api := e.Group("/api", XRuntime)
+	api := e.Group("/api", XRuntimeMiddleware)
 	api.GET("/ping", handlers.Ping)
 
 	log := api.Group("/dict/logs")
