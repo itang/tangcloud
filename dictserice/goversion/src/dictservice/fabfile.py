@@ -36,3 +36,8 @@ def dist():
 def fmt():
     """go fmt ./..."""
     local('GOPATH=$PWD/../.. go fmt ./...')
+
+
+def dev():
+    """dev"""
+    local('GOPATH=$PWD/../.. realize fast')
