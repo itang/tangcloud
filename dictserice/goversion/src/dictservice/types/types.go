@@ -3,12 +3,12 @@ package types
 import "fmt"
 
 type DictLog struct {
-	From     string `json:"from"`
-	
+	From string `json:"from"`
+
 	FromLang string `json:"fromLang"`
-	
-	ToLang   string `json:"toLang"`
-	To       string `json:"to"`
+
+	ToLang string `json:"toLang"`
+	To     string `json:"to"`
 }
 
 type DictLogEntity struct {

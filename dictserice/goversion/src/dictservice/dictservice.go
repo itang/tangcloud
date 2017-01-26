@@ -1,25 +1,21 @@
 package main
 
 import (
-	"fmt"
-
 	"dictservice/handlers"
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 )
 
-func init() {
-	fmt.Printf("main package init...")
-}
-
 func main() {
-	api := iris.Party("/api")
-	api.Any("/ping", handlers.Ping)
+	e := echo.New()
 
-	log := api.Party("/dict/logs")
-	log.Post("", handlers.CreateLog)
-	log.Get("", handlers.ListLogs)
+	api := e.Group("/api")
+	api.GET("/ping", handlers.Ping)
 
-	iris.StaticWeb("/", "../../../public", 0)
+	log := api.Group("/dict/logs")
+	log.POST("", handlers.CreateLog)
+	log.GET("", handlers.ListLogs)
 
-	iris.Listen(":8080")
+	//e.Static("/", "../../../public")
+
+	e.Logger.Fatal(e.Start(":8080"))
 }

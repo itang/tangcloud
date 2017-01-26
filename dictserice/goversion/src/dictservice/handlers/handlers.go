@@ -1,14 +1,18 @@
 package handlers
 
 import (
-	"dictservice/types"
 	"encoding/json"
 	"fmt"
-	"github.com/itang/gotang"
-	"github.com/kataras/iris"
-	"github.com/uber-go/zap"
-	"gopkg.in/redis.v4"
+	"log"
+	"net/http"
 	"time"
+
+	"github.com/itang/gotang"
+	"github.com/labstack/echo"
+	"github.com/uber-go/zap"
+	"gopkg.in/redis.v5"
+
+	"dictservice/types"
 )
 
 const (
@@ -29,7 +33,7 @@ var (
 )
 
 func init() {
-	fmt.Printf("handlers package init...")
+	log.Println("handlers package init...")
 	pingErr := client.Ping().Err()
 	if pingErr != nil {
 		logger.Warn(client.Ping().Err().Error())
@@ -41,15 +45,15 @@ func test() string {
 	return "test"
 }
 
-func Ping(ctx *iris.Context) {
-	ctx.JSON(200, map[string]string{"message": "pong"})
+func Ping(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, map[string]string{"message": "pong"})
 }
 
-func CreateLog(ctx *iris.Context) {
+func CreateLog(ctx echo.Context) error {
 	logger.Info("Post to /dict/logs")
 	dictLog := &types.DictLog{}
-	if err := ctx.ReadJSON(dictLog); err != nil {
-		ctx.JSON(500, types.Response{Status: 500, Message: err.Error()})
+	if err := ctx.Bind(dictLog); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, types.Response{Status: 500, Message: err.Error()})
 	} else {
 		id := time.Now().Unix()
 		logEntity := types.DictLogEntity{Id: id, DictLog: *dictLog}
@@ -65,29 +69,29 @@ func CreateLog(ctx *iris.Context) {
 		client.HSet(DICT_LOG_DATA_KEY, value, logEntityJson)
 
 		if err != nil {
-			ctx.JSON(500, types.Response{Status: 500, Message: err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, types.Response{Status: 500, Message: err.Error()})
 		} else {
-			ctx.JSON(200, types.Response{Status: 200, Message: ""})
+			return ctx.JSON(http.StatusOK, types.Response{Status: 200, Message: ""})
 		}
 	}
 }
 
-func ListLogs(ctx *iris.Context) {
+func ListLogs(ctx echo.Context) error {
 	logger.Info("Get /dict/logs")
 
-	reply := client.HVals(DICT_LOG_DATA_KEY)
-	if reply.Err() != nil {
-		fmt.Printf("error: %v", reply.Err())
-		ctx.Error(reply.Err().Error(), 500)
+	reply, err := client.HVals(DICT_LOG_DATA_KEY).Result()
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		return ctx.JSON(http.StatusInternalServerError, types.Response{Status: 500, Message: err.Error()})
 	} else {
-		logs := make([]types.DictLog, len(reply.Val()))
-		for i, v := range reply.Val() {
+		logs := make([]types.DictLog, len(reply))
+		for i, v := range reply {
 			log := types.DictLog{}
 			err := json.Unmarshal([]byte(v), &log)
 			gotang.AssertNoError(err, "json decode")
 			logs[i] = log
 		}
 
-		ctx.JSON(200, types.Response{Status: 200, Message: "", Data: logs})
+		return ctx.JSON(http.StatusOK, types.Response{Status: 200, Message: "", Data: logs})
 	}
 }

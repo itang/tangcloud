@@ -4,6 +4,13 @@ from fabric.api import *
 from datetime import datetime
 
 
+
+def prepare():
+    """prepare"""
+    for p in ['github.com/itang/gotang', 'github.com/labstack/echo', 'github.com/uber-go/zap', 'gopkg.in/redis.v5']:
+        local('GOPATH=$PWD/../.. go get {}'.format(p))
+
+
 def run():
     """run"""
     local('GOPATH=$PWD/../.. go run dictservice.go')
@@ -24,3 +31,8 @@ def dist():
     """dist for 386"""
     local('GOPATH=$PWD/../.. gox -os="linux" -arch="386"')
     local('upx dictservice_linux_386')
+
+
+def fmt():
+    """go fmt ./..."""
+    local('GOPATH=$PWD/../.. go fmt ./...')
