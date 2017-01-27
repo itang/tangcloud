@@ -1,0 +1,16 @@
+{
+    "dependencies": {
+        "github.com/itang/gotang": {
+            "branch": "master"
+        },
+        "github.com/labstack/echo": {
+            "branch": "master"
+        },
+        "github.com/uber-go/zap": {
+            "branch": "master"
+        },
+        "gopkg.in/redis.v5": {
+            "branch": "master"
+        }
+    }
+}

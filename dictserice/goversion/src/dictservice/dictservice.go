@@ -17,7 +17,7 @@ func XRuntimeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		err = next(ctx)
 
 		//FIXME: 未生效
-		ctx.Response().Header().Set("x-runtime", time.Now().Sub(start).String())
+		ctx.Response().Header().Set("x-runtime", time.Since(start).String())
 		return
 	}
 }

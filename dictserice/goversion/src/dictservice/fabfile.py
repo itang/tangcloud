@@ -2,18 +2,35 @@
 
 from fabric.api import *
 from datetime import datetime
+import os
 
+
+def __gocmd(cmd):
+    # cwd = os.getcwd()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    gopath = os.path.normpath(os.path.join(dir_path, '../../'))
+    local('GOPATH={} {}'.format(gopath, cmd))
 
 
 def prepare():
     """prepare"""
     for p in ['github.com/itang/gotang', 'github.com/labstack/echo', 'github.com/uber-go/zap', 'gopkg.in/redis.v5']:
-        local('GOPATH=$PWD/../.. go get {}'.format(p))
+        __gocmd('go get {}'.format(p))
 
 
 def run():
     """run"""
-    local('GOPATH=$PWD/../.. go run dictservice.go')
+    __gocmd('go run dictservice.go')
+
+
+def dev():
+    """dev"""
+    __gocmd('realize fast')
+
+
+def repl():
+    """repl"""
+    local('gore')
 
 
 def test():
@@ -29,15 +46,22 @@ def bench():
 
 def dist():
     """dist for 386"""
-    local('GOPATH=$PWD/../.. gox -os="linux" -arch="386"')
+    __gocmd('gox -os="linux" -arch="386"')
     local('upx dictservice_linux_386')
 
 
 def fmt():
     """go fmt ./..."""
-    local('GOPATH=$PWD/../.. go fmt ./...')
+    __gocmd('go fmt ./...')
 
 
-def dev():
-    """dev"""
-    local('GOPATH=$PWD/../.. realize fast')
+def update():
+    """"dep ensure -update"""
+    status()
+    __gocmd('dep ensure -update')
+    status()
+
+
+def status():
+    """dep status"""
+    __gocmd('dep status')
