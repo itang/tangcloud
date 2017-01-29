@@ -1,31 +1,16 @@
 package main
 
 import (
-	"time"
+	"github.com/labstack/echo"
 
 	"dictservice/handlers"
-	"github.com/labstack/echo"
+	local_middleware "dictservice/middleware"
 )
-
-func XRuntimeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(ctx echo.Context) (err error) {
-		start := time.Now()
-
-		//link: https://golang.org/pkg/net/http/#example_ResponseWriter_trailers
-		ctx.Response().Header().Set("Trailer", "x-runtime")
-
-		err = next(ctx)
-
-		//FIXME: 未生效
-		ctx.Response().Header().Set("x-runtime", time.Since(start).String())
-		return
-	}
-}
 
 func main() {
 	e := echo.New()
 
-	api := e.Group("/api", XRuntimeMiddleware)
+	api := e.Group("/api", local_middleware.XRuntime)
 	api.GET("/ping", handlers.Ping)
 
 	log := api.Group("/dict/logs")
