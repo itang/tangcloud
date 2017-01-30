@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"dictservice/model"
-	"dictservice/types"
-
 	"github.com/uber-go/zap"
 	"gopkg.in/redis.v5"
+
+	"dictservice/model"
+	"dictservice/types"
 )
 
-func NewDefaultDictLogServiceImpl(redisClient *redis.Client, logger zap.Logger) model.DictLogService {
+func NewDictLogService(redisClient *redis.Client, logger zap.Logger) model.DictLogService {
 	return &dictLogServiceImpl{redisClient, logger}
 }
 

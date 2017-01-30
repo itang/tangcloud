@@ -17,8 +17,8 @@ var (
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	logger                                 = zap.New(zap.NewJSONEncoder( /*zap.NoTime()*/)) // drop timestamps in tests
-	dictLogService    model.DictLogService = model_impl.NewDefaultDictLogServiceImpl(client, logger)
+	logger                                 = zap.New(zap.NewJSONEncoder( /*zap.NoTime()*/ )) // drop timestamps in tests
+	dictLogService    model.DictLogService = model_impl.NewDictLogService(client, logger)
 	dictLogController                      = handlers.NewDictLogController(dictLogService, logger)
 )
 

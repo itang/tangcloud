@@ -11,20 +11,20 @@ import (
 	"dictservice/types"
 )
 
-type DictLogController struct {
+type dictLogController struct {
 	dictLogService model.DictLogService
 	logger         zap.Logger
 }
 
-func NewDictLogController(dictLogService model.DictLogService, logger zap.Logger) *DictLogController {
-	return &DictLogController{dictLogService, logger}
+func NewDictLogController(dictLogService model.DictLogService, logger zap.Logger) *dictLogController {
+	return &dictLogController{dictLogService, logger}
 }
 
-func (c *DictLogController) Ping(ctx echo.Context) error {
+func (c *dictLogController) Ping(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "pong"})
 }
 
-func (c *DictLogController) CreateLog(ctx echo.Context) error {
+func (c *dictLogController) CreateLog(ctx echo.Context) error {
 	c.logger.Info("Post to /dict/logs")
 
 	dictLog := types.DictLog{}
@@ -40,7 +40,7 @@ func (c *DictLogController) CreateLog(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, types.Response{Status: 200})
 }
 
-func (c *DictLogController) ListLogs(ctx echo.Context) error {
+func (c *dictLogController) ListLogs(ctx echo.Context) error {
 	c.logger.Info("Get /dict/logs")
 
 	logs, err := c.dictLogService.FindAllLogs()
