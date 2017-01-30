@@ -8,6 +8,7 @@ import (
 	"dictservice/handlers"
 	local_middleware "dictservice/middleware"
 	"dictservice/model"
+	model_impl "dictservice/model/impl"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 		DB:       0,  // use default DB
 	})
 	logger                                 = zap.New(zap.NewJSONEncoder( /*zap.NoTime()*/)) // drop timestamps in tests
-	dictLogService    model.DictLogService = model.NewDefaultDictLogServiceImpl(client, logger)
+	dictLogService    model.DictLogService = model_impl.NewDefaultDictLogServiceImpl(client, logger)
 	dictLogController                      = handlers.NewDictLogController(dictLogService, logger)
 )
 
