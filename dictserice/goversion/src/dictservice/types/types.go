@@ -21,7 +21,3 @@ type Response struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
-
-func init() {
-	fmt.Printf("types package init...")
-}

@@ -32,6 +32,7 @@ func (s *dictLogServiceImpl) CreateLog(log types.DictLog) error {
 
 	v, err := json.Marshal(logEntity)
 	if err != nil {
+		s.logger.Error(fmt.Sprintf("error: %v", err))
 		return err
 	}
 
