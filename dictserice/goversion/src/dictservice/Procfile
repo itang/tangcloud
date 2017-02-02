@@ -1,0 +1,3 @@
+web: fab dev
+redis: cd ../../../env/; redis-server redis.conf
+

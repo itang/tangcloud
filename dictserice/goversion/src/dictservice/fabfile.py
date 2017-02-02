@@ -28,6 +28,13 @@ def dev():
     __gocmd('realize fast')
 
 
+def start():
+    """forego"""
+    # local('forego start') # https://github.com/ddollar/forego
+
+    local('honcho start') # https://github.com/nickstenning/honcho
+
+
 def repl():
     """repl"""
     local('gore')

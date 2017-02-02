@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 type DictLog struct {
 	From string `json:"from"`
 
