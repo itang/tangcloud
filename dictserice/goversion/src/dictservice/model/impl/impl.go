@@ -89,8 +89,7 @@ func (s *dictLogServiceImpl) DeleteLog(id string) error {
 }
 
 func (s *dictLogServiceImpl) ExistsLog(id string) (exists bool, err error) {
-	exists, err = s.redis.HExists(dict_log_data_key, id).Result()
-	return
+	return s.redis.HExists(dict_log_data_key, id).Result()
 }
 
 func uuid() string {
