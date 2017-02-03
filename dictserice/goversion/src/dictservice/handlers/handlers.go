@@ -21,7 +21,7 @@ func NewDictLogController(dictLogService model.DictLogService, logger zap.Logger
 }
 
 func (c *dictLogController) Ping(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, map[string]string{"message": "pong"})
+	return okJSONAny(ctx, map[string]string{"message": "pong"})
 }
 
 func (c *dictLogController) CreateLog(ctx echo.Context) error {
@@ -30,14 +30,16 @@ func (c *dictLogController) CreateLog(ctx echo.Context) error {
 	dictLog := types.DictLog{}
 	if err := ctx.Bind(&dictLog); err != nil {
 		c.logger.Error(fmt.Sprintf("error: %v", err))
-		return ctx.JSON(http.StatusInternalServerError, types.Response{Status: 500, Message: err.Error()})
+		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
-	if err := c.dictLogService.CreateLog(dictLog); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, types.Response{Status: 500, Message: err.Error()})
+	id, err := c.dictLogService.CreateLog(dictLog)
+	if err != nil {
+		c.logger.Error(fmt.Sprintf("error: %v", err))
+		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
-	return ctx.JSON(http.StatusOK, types.Response{Status: 200})
+	return okJSON(ctx, respData(types.Id(id)))
 }
 
 func (c *dictLogController) ListLogs(ctx echo.Context) error {
@@ -46,8 +48,66 @@ func (c *dictLogController) ListLogs(ctx echo.Context) error {
 	logs, err := c.dictLogService.FindAllLogs()
 	if err != nil {
 		c.logger.Error(fmt.Sprintf("error: %v", err))
-		return ctx.JSON(http.StatusInternalServerError, types.Response{Status: http.StatusInternalServerError, Message: err.Error()})
+		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
-	return ctx.JSON(http.StatusOK, types.Response{Status: http.StatusOK, Data: logs})
+	return okJSON(ctx, respData(logs))
+}
+
+func (c *dictLogController) DeleteLog(ctx echo.Context) error {
+	id := ctx.Param("id")
+	c.logger.Info("Delete /dict/" + id)
+	if id == "" {
+		c.logger.Warn("路径参数id为空")
+		return badRequestSON(ctx, respMessage("路径参数id为空"))
+	}
+
+	if err := c.dictLogService.DeleteLog(id); err != nil {
+		switch err.(type) {
+		case types.LogNoExistsError:
+			return badRequestSON(ctx, respMessage(err.Error()))
+		default:
+			c.logger.Error(fmt.Sprintf("error: %v", err))
+			return errorJSON(ctx, respMessage("删除日志出错"))
+		}
+	}
+
+	return okJSON(ctx, respMessage("success"))
+}
+
+func respMessage(message string) types.Response {
+	return types.Response{Message: message}
+}
+
+func respData(data interface{}) types.Response {
+	return types.Response{Data: data}
+}
+
+//func respMessageData(message string, data interface{}) types.Response {
+//	return types.Response{Message: message, Data: data}
+//}
+
+func badRequestSON(ctx echo.Context, resp types.Response) error {
+	trySetStatus(&resp, http.StatusBadRequest)
+	return ctx.JSON(http.StatusBadRequest, resp)
+}
+
+func errorJSON(ctx echo.Context, resp types.Response) error {
+	trySetStatus(&resp, http.StatusInternalServerError)
+	return ctx.JSON(http.StatusInternalServerError, resp)
+}
+
+func okJSON(ctx echo.Context, resp types.Response) error {
+	trySetStatus(&resp, http.StatusOK)
+	return okJSONAny(ctx, resp)
+}
+
+func okJSONAny(ctx echo.Context, resp interface{}) error {
+	return ctx.JSON(http.StatusOK, resp)
+}
+
+func trySetStatus(resp *types.Response, status int) {
+	if resp.Status == 0 {
+		resp.Status = status
+	}
 }

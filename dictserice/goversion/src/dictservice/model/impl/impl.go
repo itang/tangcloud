@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
+	gouuid "github.com/satori/go.uuid"
 	"github.com/uber-go/zap"
 	"gopkg.in/redis.v5"
 
 	"dictservice/model"
 	"dictservice/types"
+	"strings"
 )
 
-func NewDictLogService(redisClient *redis.Client, logger zap.Logger) model.DictLogService {
-	return &dictLogServiceImpl{redisClient, logger}
+func NewDictLogService(redis *redis.Client, logger zap.Logger) model.DictLogService {
+	return &dictLogServiceImpl{redis, logger}
 }
 
 const (
@@ -22,41 +25,41 @@ const (
 )
 
 type dictLogServiceImpl struct {
-	redisClient *redis.Client
-	logger      zap.Logger
+	redis  *redis.Client
+	logger zap.Logger
 }
 
-func (s *dictLogServiceImpl) CreateLog(log types.DictLog) error {
-	id := time.Now().Unix()
-	logEntity := types.DictLogEntity{Id: id, DictLog: log}
+func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error) {
+	id = uuid()
+	logEntity := types.DictLogEntity{Id: types.Id(id), DictLog: log}
 
 	v, err := json.Marshal(logEntity)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("error: %v", err))
-		return err
+		return
 	}
 
-	value := fmt.Sprintf("%v", id)
-	score := id
+	value := id
+	score := float64(time.Now().Unix())
 	logEntityJson := string(v)
 
 	//TODO: in transaction
-	s.redisClient.ZAdd(dict_log_key, redis.Z{Member: value, Score: float64(score)})
-	s.redisClient.HSet(dict_log_data_key, value, logEntityJson)
+	s.redis.ZAdd(dict_log_key, redis.Z{Member: value, Score: score})
+	s.redis.HSet(dict_log_data_key, id, logEntityJson)
 
-	return nil
+	return
 }
 
-func (s *dictLogServiceImpl) FindAllLogs() ([]types.DictLog, error) {
-	reply, err := s.redisClient.HVals(dict_log_data_key).Result()
+func (s *dictLogServiceImpl) FindAllLogs() ([]types.DictLogEntity, error) {
+	reply, err := s.redis.HVals(dict_log_data_key).Result()
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("error: %v", err))
 		return nil, err
 	}
 
-	logs := make([]types.DictLog, len(reply))
+	logs := make([]types.DictLogEntity, len(reply))
 	for i, v := range reply {
-		log := types.DictLog{}
+		log := types.DictLogEntity{}
 		if err := json.Unmarshal([]byte(v), &log); err != nil {
 			return nil, err
 		}
@@ -64,4 +67,32 @@ func (s *dictLogServiceImpl) FindAllLogs() ([]types.DictLog, error) {
 		logs[i] = log
 	}
 	return logs, nil
+}
+
+func (s *dictLogServiceImpl) DeleteLog(id string) error {
+	if id == "" {
+		return errors.New("id不能为空")
+	}
+
+	c, err := s.redis.HDel(dict_log_data_key, id).Result()
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("error: %v", err))
+		return err
+	}
+	if c <= 0 {
+		msg := fmt.Sprintf("id为%s的log不存在", id)
+		s.logger.Error(fmt.Sprintf("error: %v", msg))
+		return types.LogNoExistsError{Id: types.Id(id)}
+	}
+
+	return nil
+}
+
+func (s *dictLogServiceImpl) ExistsLog(id string) (exists bool, err error) {
+	exists, err = s.redis.HExists(dict_log_data_key, id).Result()
+	return
+}
+
+func uuid() string {
+	return strings.Replace(gouuid.NewV4().String(), "-", "", -1)
 }

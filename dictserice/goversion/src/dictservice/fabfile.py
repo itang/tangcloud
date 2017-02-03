@@ -5,7 +5,8 @@ from datetime import datetime
 import os
 
 
-def __gocmd(cmd):
+def gocmd(cmd):
+    """run go cmd in the custom gopath"""
     # cwd = os.getcwd()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     gopath = os.path.normpath(os.path.join(dir_path, '../../'))
@@ -15,17 +16,17 @@ def __gocmd(cmd):
 def prepare():
     """prepare"""
     for p in ['github.com/itang/gotang', 'github.com/labstack/echo', 'github.com/uber-go/zap', 'gopkg.in/redis.v5']:
-        __gocmd('go get {}'.format(p))
+        gocmd('go get {}'.format(p))
 
 
 def run():
     """run"""
-    __gocmd('go run dictservice.go')
+    gocmd('go run dictservice.go')
 
 
 def dev():
     """dev"""
-    __gocmd('realize fast')
+    gocmd('realize fast')
 
 
 def start():
@@ -53,22 +54,22 @@ def bench():
 
 def dist():
     """dist for 386"""
-    __gocmd('gox -os="linux" -arch="386"')
+    gocmd('gox -os="linux" -arch="386"')
     local('upx dictservice_linux_386')
 
 
 def fmt():
     """go fmt ./..."""
-    __gocmd('go fmt ./...')
+    gocmd('go fmt ./...')
 
 
 def update():
     """"dep ensure -update"""
     status()
-    __gocmd('dep ensure -update')
+    gocmd('dep ensure -update')
     status()
 
 
 def status():
     """dep status"""
-    __gocmd('dep status')
+    gocmd('dep status')

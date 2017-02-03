@@ -23,11 +23,7 @@ var (
 )
 
 func init() {
-	logger.Info("redis client ping...")
-	pingErr := client.Ping().Err()
-	if pingErr != nil {
-		logger.Error(pingErr.Error())
-	}
+	pingRedis()
 }
 
 func main() {
@@ -39,8 +35,17 @@ func main() {
 	log := api.Group("/dict/logs")
 	log.POST("", dictLogController.CreateLog)
 	log.GET("", dictLogController.ListLogs)
+	log.DELETE("/:id", dictLogController.DeleteLog)
 
 	//e.Static("/", "../../../public")
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8080")) //TODO: PORT from env config
+}
+
+func pingRedis() {
+	logger.Info("redis client ping...")
+	pingErr := client.Ping().Err()
+	if pingErr != nil {
+		logger.Error(pingErr.Error())
+	}
 }

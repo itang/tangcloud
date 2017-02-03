@@ -1,5 +1,9 @@
 package types
 
+import "fmt"
+
+type Id string
+
 type DictLog struct {
 	From string `json:"from"`
 
@@ -10,7 +14,7 @@ type DictLog struct {
 }
 
 type DictLogEntity struct {
-	Id int64 `json:"id"`
+	Id Id `json:"id"`
 	DictLog
 }
 
@@ -18,4 +22,12 @@ type Response struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
+}
+
+type LogNoExistsError struct {
+	Id Id
+}
+
+func (c LogNoExistsError) Error() string {
+	return fmt.Sprintf("ID为%s的日志不存在", c.Id)
 }
