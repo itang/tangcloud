@@ -70,3 +70,14 @@ def deploy(by='docker'):
         run('tar -zxf elixirversion.tar.gz -C elixirversion')
 
         restart_remote()
+
+
+def __kill_by_name(name):
+    with settings(warn_only=True):
+        local("pkill {}".format(name))
+
+
+def kill():
+    """kill redis nginx"""
+    for name in ['redis-server', 'nginx']:
+        __kill_by_name(name)

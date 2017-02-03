@@ -14,10 +14,10 @@ defmodule Elixirversion.LogController do
   end
 
   def create(conn, %{"from" => _, "to" => _} = params) do
-    id = :os.system_time
-    score = id
+    id = uuid()
+    score = :os.system_time
     member = to_string id
-    entity = Map.take params, ["from", "to"]
+    entity = (Map.take params, ["from", "to"]) |> Map.put("id", id)
 
     with {:ok, _} <- Redix.command(:redix, ["zadd", @dict_log_key, score, member]),
          {:ok, entity_json} <- Poison.encode(entity),
@@ -28,9 +28,25 @@ defmodule Elixirversion.LogController do
     end
   end
 
+  def delete(conn, %{"id" => id} = params) do
+    with {:ok, i} <- Redix.command(:redix, ["hdel", @dict_log_data_key, id]) do
+      if i == 0 do
+         conn |> put_status(400) |> json(%{message: "id为#{id}的日志不存在!"})
+      else
+         json conn, %{ok: true}
+      end
+    else
+      _ -> conn |> put_status(500) |> json([])
+    end
+  end
+
   defp json_raw(conn, content) when is_binary(content) do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, content)
+  end
+
+  defp uuid() do
+    UUID.uuid4() |> String.replace("-", "")
   end
 end

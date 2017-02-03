@@ -33,6 +33,7 @@ defmodule Elixirversion.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:redix, ">= 0.0.0"},
+     {:uuid, "~> 1.1"},
 
      {:ex_doc, "~> 0.14", only: :dev},
      {:distillery, "~> 0.10"},
