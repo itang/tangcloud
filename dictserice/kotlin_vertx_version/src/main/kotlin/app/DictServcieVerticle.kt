@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
 import com.fasterxml.jackson.module.kotlin.*
 import io.vertx.core.*
+import io.vertx.core.http.ServerWebSocket
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.LoggerHandler
@@ -14,6 +15,7 @@ import io.vertx.ext.web.handler.TimeoutHandler
 import io.vertx.redis.RedisClient
 import io.vertx.redis.RedisOptions
 import java.time.Duration
+import java.util.*
 
 data class DictLogReq(
         val from: String,
@@ -67,6 +69,8 @@ class DictServcieVerticle : AbstractVerticle() {
     private val DICT_LOG_KEY = "tc:dict:log"
     private val DICT_LOG_DATA_KEY = "tc:dict:log:data"
 
+    private val wsHolder = mutableListOf<ServerWebSocket>()
+
     override fun start() {
         httpServer = vertx.createHttpServer()
         val redis = RedisClient.create(vertx, redisConfig)
@@ -99,6 +103,32 @@ class DictServcieVerticle : AbstractVerticle() {
 
             route("/exception").handler { ctx ->
                 throw RuntimeException("test exception")
+            }
+
+            // 演示WebSocket
+            route("/ws").handler { ctx ->
+                val ws = ctx.request().upgrade()
+                println("ws $ws connected!")
+                wsHolder.add(ws) //　hold connection
+
+                wsHolder.forEach {
+                    it.writeFinalTextFrame(mapper.writeValueAsString("${ws.remoteAddress()} connected"))
+                }
+
+                ws.writeFinalTextFrame(mapper.writeValueAsString(mapOf("message" to "Hello")))
+
+
+                ws.handler { buf ->
+                    val content = buf.toString("utf-8")
+                    println("Received: $content")
+                    ws.writeFinalTextFrame(content + ", date: ${Date()}")
+                }.closeHandler {
+                    println("ws $ws closed")
+                    wsHolder.remove(ws)
+                    wsHolder.forEach {
+                        it.writeFinalTextFrame("${ws.remoteAddress()} disconnected")
+                    }
+                }
             }
 
             post("/dict/logs").handler { ctx ->
