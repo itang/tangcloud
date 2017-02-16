@@ -56,10 +56,11 @@ class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
 
 object GlobalConfig {
     val PORT = 8080
-    val TIMEOUT = Duration.ofSeconds(8)
+    val TIMEOUT: Duration = Duration.ofSeconds(8)
 }
 
-class DictServcieVerticle : AbstractVerticle() {
+@Suppress("unused")
+class DictServiceVerticle : AbstractVerticle() {
 
     private lateinit var httpServer: HttpServer
 
