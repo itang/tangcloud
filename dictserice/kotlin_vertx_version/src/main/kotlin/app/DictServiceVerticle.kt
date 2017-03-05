@@ -34,14 +34,10 @@ data class DictLogEntity(
         val createdAt: String? = null
 )
 
-enum class Status {
-    Success, Failure
-}
 
-sealed class Result(val status: Status, open val message: String? = null) {
-    class Ok<out T>(override val message: String? = null, val data: T? = null) : Result(Status.Success, message)
-    class Err<out E>(override val message: String? = null, val data: E? = null) : Result(Status.Failure, message)
-}
+sealed class Result(val ok: Boolean, open val message: String? = null)
+data class Ok<out T>(override val message: String? = null, val data: T? = null) : Result(true, message)
+data class Err<out E>(val status: Int = -1, override val message: String? = null, val data: E? = null) : Result(false, message)
 
 class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
     override fun handle(ctx: RoutingContext) {
@@ -55,7 +51,7 @@ class ResponseJSONHandler private constructor() : Handler<RoutingContext> {
 }
 
 object GlobalConfig {
-    val PORT = 8080
+    val PORT: Int = 8080
     val TIMEOUT: Duration = Duration.ofSeconds(8)
 }
 
@@ -80,7 +76,7 @@ class DictServiceVerticle : AbstractVerticle() {
             route().handler(LoggerHandler.create())
 
             get("/").handler { ctx ->
-                ctx.renderJSON(Result.Ok<Unit>(message = "Dict Service"))
+                ctx.renderJSON(Ok<Unit>(message = "Dict Service"))
             }
         }
 
@@ -95,14 +91,14 @@ class DictServiceVerticle : AbstractVerticle() {
                     println(it.message)
                 }
 
-                ctx.renderJSON(Result.Err<Unit>(ctx.failure()?.message))
+                ctx.renderJSON(Err<Unit>(message = ctx.failure()?.message))
             }
 
             route("/ping").handler { ctx ->
-                ctx.renderJSON(Result.Ok(data = mapOf("message" to "pong")))
+                ctx.renderJSON(Ok(data = mapOf("message" to "pong")))
             }
 
-            route("/exception").handler { ctx ->
+            route("/exception").handler { _ ->
                 throw RuntimeException("test exception")
             }
 
@@ -149,10 +145,10 @@ class DictServiceVerticle : AbstractVerticle() {
 
                 await(listOf(fut1, fut2)) { ar ->
                     if (ar.succeeded()) {
-                        ctx.renderJSON(Result.Ok<Unit>())
+                        ctx.renderJSON(Ok<Unit>())
                     } else {
                         ar.cause()?.printStackTrace()
-                        ctx.renderJSON(Result.Err<Unit>(message = ar.cause()?.message))
+                        ctx.renderJSON(Err<Unit>(message = ar.cause()?.message))
                     }
                 }
             }
@@ -160,10 +156,10 @@ class DictServiceVerticle : AbstractVerticle() {
             get("/dict/logs").handler { ctx ->
                 redis.hvals(DICT_LOG_DATA_KEY) { res ->
                     if (res.succeeded()) {
-                        ctx.renderJSON(Result.Ok(data = res.result().map { mapper.readValue<DictLogEntity>(it.toString()) }))
+                        ctx.renderJSON(Ok(data = res.result().map { mapper.readValue<DictLogEntity>(it.toString()) }))
                     } else {
                         res.cause()?.printStackTrace()
-                        ctx.renderJSON(Result.Err<Unit>())
+                        ctx.renderJSON(Err<Unit>())
                     }
                 }
             }

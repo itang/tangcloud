@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlinVersion = '1.0.4'
+        kotlinVersion = '1.1.0'
     }
     repositories {
         jcenter()
@@ -50,7 +50,7 @@ dependencies {
 
 
 mainClassName = 'io.vertx.core.Launcher'
-def mainVerticleName = 'app.DictServcieVerticle'
+def mainVerticleName = 'app.DictServiceVerticle'
 
 // Vert.x watches for file changes in all subdirectories
 // of src/ but only for files with .java extension
