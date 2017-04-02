@@ -1,0 +1,14 @@
+[package]
+authors = ["itang <live.tang@gmail.com>"]
+name = "rust_rocket_version"
+version = "0.1.0"
+
+[dependencies]
+redis = "0.8.0"
+rocket = "0.2.4"
+rocket_codegen = "0.2.4"
+rocket_contrib = "0.2.4"
+serde = "0.9.12"
+serde_derive = "0.9.12"
+serde_json = "0.9.9"
+time = "0.1.36"
