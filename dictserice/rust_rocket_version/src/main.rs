@@ -13,7 +13,7 @@ extern crate time;
 
 use serde::ser::Serialize;
 use rocket_contrib::JSON;
-
+use rocket::config::{self, Environment};
 
 #[derive(Serialize, Debug)]
 struct Resp<T: Serialize> {
@@ -141,9 +141,12 @@ fn not_found() -> JSON<Resp<()>> {
 }
 
 fn main() {
-    let client = redis::Client::open("redis://127.0.0.1/").expect("open redis error");
-    rocket::ignite()
-        .mount("/", routes![webroot::index, webroot::ping])
+    let rkt = rocket::ignite();
+    let config = config::active().unwrap();
+    let redis_url = config.get_str("redis_url").expect("can't get redis url from config");
+    let client = redis::Client::open(redis_url).expect("open redis error");
+
+    rkt.mount("/", routes![webroot::index, webroot::ping])
         .mount("/dict", routes![dict::list, dict::new])
         .catch(errors![not_found])
         .manage(client)
