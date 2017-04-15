@@ -15,31 +15,6 @@ use serde::ser::Serialize;
 use rocket_contrib::JSON;
 
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
-
-#[get("/ping")]
-fn ping() -> &'static str {
-    "pong"
-}
-
-#[derive(Serialize, Debug)]
-#[serde(tag = "type")]
-#[allow(non_camel_case_types)]
-enum Reply<T: Serialize, E: Serialize> {
-    ok {
-        message: Option<String>,
-        data: Option<T>,
-    },
-    error {
-        code: i32,
-        message: Option<String>,
-        data: Option<E>,
-    },
-}
-
 #[derive(Serialize, Debug)]
 struct Resp<T: Serialize> {
     ok: bool,
@@ -61,26 +36,36 @@ impl<T: Serialize> Resp<T> {
         where S: Into<String>
     {
         JSON(Resp {
-                 ok: ok,
-                 code: code,
-                 message: message.map(|x| x.into()),
-                 data: data,
-             })
+            ok: ok,
+            code: code,
+            message: message.map(|x| x.into()),
+            data: data,
+        })
     }
 }
 
 
-type ResultJSONResp<T: Serialize, E: Serialize> = Result<JSON<Resp<T>>, JSON<Resp<E>>>;
+type ResultJSONResp<T/*: Serialize*/, E/*: Serialize*/> = Result<JSON<Resp<T>>, JSON<Resp<E>>>;
 
 
 #[derive(Serialize, Debug)]
 struct Id<T: Serialize>(T);
 
-use Reply::error;
+
+mod webroot {
+    #[get("/")]
+    fn index() -> &'static str {
+        "Hello, world!"
+    }
+
+    #[get("/ping")]
+    fn ping() -> &'static str {
+        "pong"
+    }
+}
 
 mod dict {
     use rocket_contrib::JSON;
-    use Reply::{self, ok, error};
     use Resp;
     use ResultJSONResp;
     use Id;
@@ -93,13 +78,6 @@ mod dict {
     const DICT_LOG_KEY: &'static str = "tc:dict:log";
     const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
 
-    fn timestamp() -> f64 {
-        let timespec = time::get_time();
-        // 1459440009.113178
-        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
-        mills
-    }
-
 
     #[derive(Deserialize, Serialize, Debug)]
     struct Log {
@@ -108,12 +86,10 @@ mod dict {
     }
 
 
-    #[get("/dict/logs")]
+    #[get("/logs")]
     // 尝试使用Result表达Action返回值
     fn list(redis: State<redis::Client>) -> ResultJSONResp<Vec<Log>, ()> {
-        let conn = redis
-            .get_connection()
-            .map_err(|_| Resp::json_err(500, Some("无法获取Redis连接"), None))?;
+        let conn = redis_conn(redis)?;
 
         let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY)
             .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
@@ -125,46 +101,50 @@ mod dict {
             .map_err(|x| Resp::json_err(500, Some(x), None))
     }
 
-    #[post("/dict/logs", format = "application/json", data = "<log>")]
-    fn new(log: JSON<Log>, redis: State<redis::Client>) -> JSON<Reply<Id<i64>, ()>> {
-        //TODO: 错误处理
+    #[post("/logs", format = "application/json", data = "<log>")]
+    fn new(log: JSON<Log>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64>, ()> {
         if log.0.from == "hello" {
-            return JSON(error {
-                            code: 404,
-                            message: Some("hello都不知道啊, 老子不干了".to_string()),
-                            data: None,
-                        });
+            return Err(Resp::json_err(404, Some("hello都不知道啊, 老子不干了"), None));
         }
 
-        let conn = redis.get_connection().expect("无法获取Redis连接");
+        let conn = redis_conn(redis)?;
 
-        let log_json = serde_json::to_string(&log.0).unwrap();
+        let log_json = serde_json::to_string(&log.0)
+            .map_err(|_| Resp::json_err(500, Some("to json error"), None))?;
         let id = timestamp() as i64;
         let value = format!("{}", id);
         let score = id;
 
-        let _: () = conn.zadd(DICT_LOG_KEY, &value, score).unwrap();
-        let _: () = conn.hset(DICT_LOG_DATA_KEY, &value, log_json).unwrap();
-        JSON(ok {
-                 message: Some("ok".to_string()),
-                 data: Some(Id(id)),
-             })
+        let _: () = conn.zadd(DICT_LOG_KEY, &value, score)
+            .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
+        let _: () = conn.hset(DICT_LOG_DATA_KEY, &value, log_json)
+            .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
+
+        Ok(Resp::json_ok(200, Some("ok"), Some(Id(id))))
+    }
+
+    fn redis_conn(redis: State<redis::Client>) -> Result<redis::Connection, JSON<Resp<()>>> {
+        redis.get_connection().map_err(|_| Resp::json_err(500, Some("无法获取Redis连接"), None))
+    }
+
+    fn timestamp() -> f64 {
+        let timespec = time::get_time();
+        // 1459440009.113178
+        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+        mills
     }
 }
 
 #[error(404)]
-fn not_found() -> JSON<Reply<(), ()>> {
-    JSON(error {
-             code: 404,
-             message: Some("Resource was not found.".to_string()),
-             data: None,
-         })
+fn not_found() -> JSON<Resp<()>> {
+    Resp::json_err(404, Some("Resource was not found."), None)
 }
 
 fn main() {
-    let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    let client = redis::Client::open("redis://127.0.0.1/").expect("open redis error");
     rocket::ignite()
-        .mount("/", routes![index, ping, dict::list, dict::new])
+        .mount("/", routes![webroot::index, webroot::ping])
+        .mount("/dict", routes![dict::list, dict::new])
         .catch(errors![not_found])
         .manage(client)
         .launch();
