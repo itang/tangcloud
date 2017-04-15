@@ -4,7 +4,7 @@
 extern crate rocket;
 extern crate serde;
 extern crate serde_json;
-#[macro_use]
+//#[macro_use]
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
@@ -12,7 +12,7 @@ extern crate redis;
 extern crate time;
 
 use serde::ser::Serialize;
-use rocket_contrib::{JSON, Value};
+use rocket_contrib::{JSON};
 
 
 #[get("/")]
@@ -43,6 +43,7 @@ enum Reply<T: Serialize, E: Serialize> {
 #[derive(Serialize, Debug)]
 struct Id<T: Serialize>(T);
 
+use Reply::error;
 
 mod dict {
     use rocket_contrib::{JSON};
@@ -115,10 +116,12 @@ mod dict {
 }
 
 #[error(404)]
-fn not_found() -> JSON<Value> {
-    JSON(json!({"status": "error",
-                "reason": "Resource was not found."
-                }))
+fn not_found() -> JSON<Reply<(), ()>> {
+    JSON(error {
+             code: 404,
+             message: Some("Resource was not found.".to_string()),
+             data: None,
+         })
 }
 
 fn main() {
