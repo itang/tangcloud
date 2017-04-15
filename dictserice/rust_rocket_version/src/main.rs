@@ -12,7 +12,7 @@ extern crate redis;
 extern crate time;
 
 use serde::ser::Serialize;
-use rocket_contrib::{JSON};
+use rocket_contrib::JSON;
 
 
 #[get("/")]
@@ -41,13 +41,48 @@ enum Reply<T: Serialize, E: Serialize> {
 }
 
 #[derive(Serialize, Debug)]
+struct Resp<T: Serialize> {
+    ok: bool,
+    code: i32,
+    message: Option<String>,
+    data: Option<T>,
+}
+
+impl<T: Serialize> Resp<T> {
+    fn json_ok<S: Into<String>>(code: i32, message: Option<S>, data: Option<T>) -> JSON<Resp<T>> {
+        Resp::json(true, code, message, data)
+    }
+
+    fn json_err<S: Into<String>>(code: i32, message: Option<S>, data: Option<T>) -> JSON<Resp<T>> {
+        Resp::json(false, code, message, data)
+    }
+
+    fn json<S>(ok: bool, code: i32, message: Option<S>, data: Option<T>) -> JSON<Resp<T>>
+        where S: Into<String>
+    {
+        JSON(Resp {
+                 ok: ok,
+                 code: code,
+                 message: message.map(|x| x.into()),
+                 data: data,
+             })
+    }
+}
+
+
+type ResultJSONResp<T: Serialize, E: Serialize> = Result<JSON<Resp<T>>, JSON<Resp<E>>>;
+
+
+#[derive(Serialize, Debug)]
 struct Id<T: Serialize>(T);
 
 use Reply::error;
 
 mod dict {
-    use rocket_contrib::{JSON};
+    use rocket_contrib::JSON;
     use Reply::{self, ok, error};
+    use Resp;
+    use ResultJSONResp;
     use Id;
     use redis;
     use redis::Commands;
@@ -72,20 +107,22 @@ mod dict {
         to: String,
     }
 
-    #[get("/dict/logs")]
-    fn list(redis: State<redis::Client>) -> JSON<Reply<Vec<Log>, ()>> {
-        //TODO: 错误处理
-        let conn = redis.get_connection().expect("无法获取Redis连接");
 
-        let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY).unwrap();
-        let res: Vec<Log> = res.into_iter()
-            .map(|it| serde_json::from_str(&it).unwrap())
+    #[get("/dict/logs")]
+    // 尝试使用Result表达Action返回值
+    fn list(redis: State<redis::Client>) -> ResultJSONResp<Vec<Log>, ()> {
+        let conn = redis
+            .get_connection()
+            .map_err(|_| Resp::json_err(500, Some("无法获取Redis连接"), None))?;
+
+        let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY)
+            .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
+        let res: Result<Vec<Log>, String> = res.into_iter()
+            .map(|it| serde_json::from_str(&it).map_err(|_| "无法获取Redis连接".to_string()))
             .collect();
 
-        JSON(ok {
-                 message: None,
-                 data: Some(res),
-             })
+        res.map(|x| Resp::json_ok(200, Some(""), Some(x)))
+            .map_err(|x| Resp::json_err(500, Some(x), None))
     }
 
     #[post("/dict/logs", format = "application/json", data = "<log>")]
