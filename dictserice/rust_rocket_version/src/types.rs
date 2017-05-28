@@ -41,5 +41,5 @@ impl<T: Serialize> Resp<T> {
 pub type ResultJSONResp<T /*: Serialize*/, E /*: Serialize*/> = Result<JSON<Resp<T>>,
                                                                        JSON<Resp<E>>>;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Id<T: Serialize>(pub T);

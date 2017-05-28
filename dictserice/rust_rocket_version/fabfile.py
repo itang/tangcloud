@@ -8,6 +8,14 @@ def help():
     print('help')
 
 
-def run():
-    """run"""
+def dev():
+    """dev"""
     local('watchexec -e rs -r "cargo run"')
+
+
+def deploy():
+    """run"""
+    local('cargo build --release')
+    run('cd /data/gateway; docker-compose stop dict; docker-compose ps')
+    put('target/release/rust_rocket_version', '/data/gateway/dict/rust_rocket_version')
+    run('cd /data/gateway; docker-compose restart dict; docker-compose ps')
