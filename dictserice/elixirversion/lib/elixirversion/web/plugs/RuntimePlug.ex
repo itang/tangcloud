@@ -1,4 +1,4 @@
-defmodule Elixirversion.Plugs.RuntimePlug do
+defmodule Elixirversion.Web.Plugs.RuntimePlug do
   @moduledoc """
   X-Runtime Plug Middleware
   """

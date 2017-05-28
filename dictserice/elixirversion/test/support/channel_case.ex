@@ -1,4 +1,4 @@
-defmodule Elixirversion.ChannelCase do
+defmodule Elixirversion.Web.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -22,7 +22,7 @@ defmodule Elixirversion.ChannelCase do
 
 
       # The default endpoint for testing
-      @endpoint Elixirversion.Endpoint
+      @endpoint Elixirversion.Web.Endpoint
     end
   end
 

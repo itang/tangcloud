@@ -1,4 +1,4 @@
-defmodule Elixirversion.IndexController do
+defmodule Elixirversion.Web.IndexController do
   use Elixirversion.Web, :controller
 
   def index(conn, _params) do

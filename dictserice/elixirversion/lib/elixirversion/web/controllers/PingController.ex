@@ -1,4 +1,4 @@
-defmodule Elixirversion.PingController do
+defmodule Elixirversion.Web.PingController do
   use Elixirversion.Web, :controller
 
   def ping(conn, _params) do

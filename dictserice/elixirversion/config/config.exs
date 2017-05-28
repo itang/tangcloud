@@ -6,11 +6,11 @@
 use Mix.Config
 
 # Configures the endpoint
-config :elixirversion, Elixirversion.Endpoint,
+config :elixirversion, Elixirversion.Web.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "Fk9SWKcD3UFxNGFaexjFVN3ZQNtRSmhEzOx6y5bMLBBnhhoc5jSa/MHGLzxM4nLZ",
-  render_errors: [view: Elixirversion.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Elixirversion.PubSub,
+  render_errors: [view: Elixirversion.Web.ErrorView, accepts: ~w(json)],
+  pubsub: [name: Elixirversion.Web.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger

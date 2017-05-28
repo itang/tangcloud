@@ -1,4 +1,4 @@
-defmodule Elixirversion.ErrorView do
+defmodule Elixirversion.Web.ErrorView do
   use Elixirversion.Web, :view
 
   def render("404.json", _assigns) do

@@ -1,4 +1,4 @@
-defmodule Elixirversion.LogController do
+defmodule Elixirversion.Web.LogController do
   use Elixirversion.Web, :controller
 
   @dict_log_key "tc:dict:log"

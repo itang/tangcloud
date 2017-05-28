@@ -8,6 +8,11 @@ def help():
     print('help')
 
 
+def dev():
+    """dev"""
+    local('mix phx.server')
+
+
 def start():
     """start"""
     local('foreman start')

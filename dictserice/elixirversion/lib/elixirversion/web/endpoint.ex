@@ -1,7 +1,7 @@
-defmodule Elixirversion.Endpoint do
+defmodule Elixirversion.Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :elixirversion
 
-  socket "/socket", Elixirversion.UserSocket
+  socket "/socket", Elixirversion.Web.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -36,5 +36,5 @@ defmodule Elixirversion.Endpoint do
     key: "_elixirversion_key",
     signing_salt: "fNvJ+jsP"
 
-  plug Elixirversion.Router
+  plug Elixirversion.Web.Router
 end
