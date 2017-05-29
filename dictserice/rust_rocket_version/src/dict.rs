@@ -11,14 +11,6 @@ const DICT_LOG_KEY: &'static str = "tc:dict:log";
 const DICT_LOG_DATA_KEY: &'static str = "tc:dict:log:data";
 
 
-fn none_i64() -> Option<i64> {
-    None
-}
-
-fn empty_id() -> Id<i64> {
-    Id(-1)
-}
-
 #[derive(Deserialize, Serialize, Debug)]
 struct LogForm {
     from: String,
@@ -40,11 +32,12 @@ struct LogEntity {
 
 #[post("/logs", format = "application/json", data = "<log>")]
 fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64>, ()> {
-    if log.0.from == "hello" {
+    let conn = redis_conn(redis)?;
+
+    let LogForm {from, to} = log.0;
+    if from == "hello" {
         return Err(Resp::json_err(404, Some("hello都不知道啊, 老子不干了"), None));
     }
-
-    let conn = redis_conn(redis)?;
 
     let timestamp_int = timestamp() as i64;
     let id = Id(timestamp_int);
@@ -53,8 +46,8 @@ fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64
 
     let log_entity = LogEntity {
         id: id.clone(),
-        from: log.0.from,
-        to: log.0.to,
+        from: from,
+        to: to,
         created_at: Some(timestamp_int),
         updated_at: Some(timestamp_int),
     };
@@ -98,4 +91,12 @@ fn timestamp() -> f64 {
     // 1459440009.113178
     let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
     mills
+}
+
+fn none_i64() -> Option<i64> {
+    None
+}
+
+fn empty_id() -> Id<i64> {
+    Id(-1)
 }
