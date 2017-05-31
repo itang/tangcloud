@@ -2,14 +2,13 @@
 address = "0.0.0.0"
 port = 8000
 #workers = max(number_of_cpus, 2)
-log = "normal"
 redis_url = "redis://127.0.0.1/"
 
 [development]
-
+log = "normal"
 
 [staging]
-
+log = "normal"
 
 [production]
 #workers = max(number_of_cpus, 2)

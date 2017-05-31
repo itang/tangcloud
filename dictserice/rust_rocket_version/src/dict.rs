@@ -4,6 +4,8 @@ use redis::Commands;
 use rocket::State;
 use serde_json;
 use time;
+use serde::ser::Serialize;
+
 use types::{Id, Resp, ResultJSONResp};
 
 
@@ -34,7 +36,7 @@ struct LogEntity {
 fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64>, ()> {
     let conn = redis_conn(redis)?;
 
-    let LogForm {from, to} = log.0;
+    let LogForm { from, to } = log.0;
     if from == "hello" {
         return Err(Resp::json_err(404, Some("hello都不知道啊, 老子不干了"), None));
     }
@@ -93,7 +95,7 @@ fn timestamp() -> f64 {
     mills
 }
 
-fn none_i64() -> Option<i64> {
+fn none_i64<T: Serialize>() -> Option<T> {
     None
 }
 
