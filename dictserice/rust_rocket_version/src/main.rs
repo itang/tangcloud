@@ -29,7 +29,7 @@ fn main() {
     let client = redis::Client::open(redis_url).expect("open redis error");
 
     rkt.mount("/", routes![webroot::index, webroot::ping])
-        .mount("/dict", routes![dict::list, dict::new])
+        .mount("/api/dict", routes![dict::list, dict::new])
         .catch(errors![webroot::not_found])
         .manage(client)
         .launch();
