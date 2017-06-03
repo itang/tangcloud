@@ -16,7 +16,8 @@ defmodule Elixirversion do
     children = [
       # Start the endpoint when the application starts
       supervisor(Endpoint, []),
-      worker(Redix, [[host: System.get_env("REDIS_HOST") || "localhost"], [name: :redix]]), # https://hexdocs.pm/redix/real-world-usage.html
+      # https://hexdocs.pm/redix/real-world-usage.html
+      worker(Redix, [[host: redis_host()], [name: :redix]]),
       # Start your own worker by calling: Elixirversion.Worker.start_link(arg1, arg2, arg3)
       # worker(Elixirversion.Worker, [arg1, arg2, arg3]),
     ]
@@ -25,5 +26,9 @@ defmodule Elixirversion do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Elixirversion.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp redis_host do
+    System.get_env("REDIS_HOST") || "localhost"
   end
 end
