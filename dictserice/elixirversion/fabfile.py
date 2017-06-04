@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fabric.api import *
+from fabric.contrib.files import exists
 
 
 def help():
@@ -26,32 +27,38 @@ def restart_remote():
             run('docker-compose restart dict_elixir')
 
 
-dist_cmds = ['mix clean',
-             'mix release.clean',
-             'mix deps.get --only prod',
-             'MIX_ENV=prod mix compile',
-             'MIX_ENV=prod mix release --env=prod --verbose']
+dist_cmds = [  # 'mix deps.get',
+    #'mix clean',
+    #'mix release.clean',
+    'mix deps.get --only prod',
+    'MIX_ENV=prod mix compile',
+    'MIX_ENV=prod mix release --env=prod --verbose']
 
 
-def dist_by_local():
+def checkout():
+    """checkout source"""
+    with cd('/data/gateway/source'):
+        if(exists('tangcloud')):
+            with cd('tangcloud'):
+                run('git pull')
+        else:
+            run('git clone git@github.com:itang/tangcloud.git')
+
+
+def dist():
     """release"""
-    for cmd in dist_cmds:
-        local(cmd)
+    with cd('/data/gateway/source/tangcloud/dictserice/elixirversion'):
+        for cmd in dist_cmds:
+            run(cmd)
 
 
 def deploy():
     """deploy"""
-    dist_by_local()
+    checkout()
 
-    bin_file = 'rel/elixirversion/releases/0.0.1/elixirversion.tar.gz'
-    local('du -sh {}'.format(bin_file))
-    with cd('/data/gateway/dict'):
-        put(bin_file, '.')
-        run('rm -rf elixirversion')
-        run('mkdir elixirversion')
-        run('tar -zxf elixirversion.tar.gz -C elixirversion')
+    dist()
 
-        restart_remote()
+    restart_remote()
 
 
 def __kill_by_name(name):
