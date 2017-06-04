@@ -32,7 +32,8 @@ dist_cmds = [  # 'mix deps.get',
     #'mix release.clean',
     'mix deps.get --only prod',
     'MIX_ENV=prod mix compile',
-    'MIX_ENV=prod mix release --env=prod --verbose']
+    #'MIX_ENV=prod mix release --env=prod --verbose'
+]
 
 
 def checkout():
