@@ -31,7 +31,7 @@ dist_cmds = [  # 'mix deps.get',
     #'mix clean',
     #'mix release.clean',
     'mix deps.get --only prod',
-    'mix phoenix.digest',
+    'MIX_ENV=prod mix phoenix.digest',
     'MIX_ENV=prod mix compile',
     #'MIX_ENV=prod mix release --env=prod --verbose'
 ]
