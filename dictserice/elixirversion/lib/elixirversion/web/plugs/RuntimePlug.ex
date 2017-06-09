@@ -18,6 +18,6 @@ defmodule Elixirversion.Web.Plugs.RuntimePlug do
   end
 
   @spec formatted_diff(integer) :: String.t
-  defp formatted_diff(diff) when diff > 1000, do: (diff |> div(1000) |> Integer.to_string) <> "ms"
-  defp formatted_diff(diff), do: (diff |> Integer.to_string) <> "us"
+  defp formatted_diff(diff) when diff > 1000, do: "#{div(diff, 1000)}ms"
+  defp formatted_diff(diff), do: "#{diff}us"
 end
