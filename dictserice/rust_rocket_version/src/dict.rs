@@ -38,7 +38,11 @@ fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64
 
     let LogForm { from, to } = log.0;
     if from == "hello" {
-        return Err(Resp::json_err(404, Some("hello都不知道啊, 老子不干了"), None));
+        return Err(Resp::json_err(
+            404,
+            Some("hello都不知道啊, 老子不干了"),
+            None,
+        ));
     }
 
     let timestamp_int = timestamp() as i64;
@@ -54,14 +58,19 @@ fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64
         updated_at: Some(timestamp_int),
     };
 
-    let log_json = serde_json::to_string(&log_entity)
-        .map_err(|_| Resp::json_err(500, Some("to json error"), None))?;
+    let log_json = serde_json::to_string(&log_entity).map_err(|_| {
+        Resp::json_err(500, Some("to json error"), None)
+    })?;
 
 
-    let _: () = conn.zadd(DICT_LOG_KEY, &value, score)
-        .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
-    let _: () = conn.hset(DICT_LOG_DATA_KEY, &value, log_json)
-        .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
+    let _: () = conn.zadd(DICT_LOG_KEY, &value, score).map_err(|_| {
+        Resp::json_err(500, Some("Redis error"), None)
+    })?;
+    let _: () = conn.hset(DICT_LOG_DATA_KEY, &value, log_json).map_err(
+        |_| {
+            Resp::json_err(500, Some("Redis error"), None)
+        },
+    )?;
 
     Ok(Resp::json_ok(200, Some("ok"), Some(id)))
 }
@@ -71,21 +80,27 @@ fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64
 fn list(redis: State<redis::Client>) -> ResultJSONResp<Vec<LogEntity>, ()> {
     let conn = redis_conn(redis)?;
 
-    let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY)
-        .map_err(|_| Resp::json_err(500, Some("Redis error"), None))?;
+    let res: Vec<String> = conn.hvals(DICT_LOG_DATA_KEY).map_err(|_| {
+        Resp::json_err(500, Some("Redis error"), None)
+    })?;
     let res: Result<Vec<LogEntity>, String> = res.into_iter()
-        .map(|it| serde_json::from_str(&it).map_err(|_| "无法获取Redis连接".to_string()))
+        .map(|it| {
+            serde_json::from_str(&it).map_err(|_| "无法获取Redis连接".to_string())
+        })
         .collect();
 
-    res.map(|x| Resp::json_ok(200, Some(""), Some(x)))
-        .map_err(|x| Resp::json_err(500, Some(x), None))
+    res.map(|x| Resp::json_ok(200, Some(""), Some(x))).map_err(
+        |x| {
+            Resp::json_err(500, Some(x), None)
+        },
+    )
 }
 
 
 fn redis_conn(redis: State<redis::Client>) -> Result<redis::Connection, JSON<Resp<()>>> {
-    redis
-        .get_connection()
-        .map_err(|_| Resp::json_err(500, Some("无法获取Redis连接"), None))
+    redis.get_connection().map_err(|_| {
+        Resp::json_err(500, Some("无法获取Redis连接"), None)
+    })
 }
 
 fn timestamp() -> f64 {

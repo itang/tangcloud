@@ -23,9 +23,9 @@ use rocket::config;
 fn main() {
     let rkt = rocket::ignite();
     let config = config::active().unwrap();
-    let redis_url = config
-        .get_str("redis_url")
-        .expect("can't get redis url from config");
+    let redis_url = config.get_str("redis_url").expect(
+        "can't get redis url from config",
+    );
     let client = redis::Client::open(redis_url).expect("open redis error");
 
     rkt.mount("/", routes![webroot::index, webroot::ping])
