@@ -12,3 +12,7 @@ serde = "0.9.15"
 serde_derive = "0.9.15"
 serde_json = "0.9.10"
 time = "0.1.36"
+
+[[bin]]
+name = "rust_rocket_version"
+#src = "bin/main.rs"
