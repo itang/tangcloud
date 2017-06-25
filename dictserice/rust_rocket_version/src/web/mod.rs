@@ -1,2 +1,2 @@
 pub mod webroot;
-pub mod dict;
+pub mod api;

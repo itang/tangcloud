@@ -9,7 +9,7 @@ extern crate rust_rocket_version;
 use rocket::config;
 
 use rust_rocket_version::web::webroot;
-use rust_rocket_version::web::dict;
+use rust_rocket_version::web::api::{self, dict};
 
 
 fn main() {
@@ -20,7 +20,8 @@ fn main() {
     );
     let client = redis::Client::open(redis_url).expect("open redis error");
 
-    rkt.mount("/", routes![webroot::index, webroot::ping])
+    rkt.mount("/", routes![webroot::index])
+        .mount("/api", routes![api::ping])
         .mount("/api/dict", routes![dict::list, dict::new])
         .catch(errors![webroot::not_found])
         .manage(client)
