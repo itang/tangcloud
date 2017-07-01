@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
 	gouuid "github.com/satori/go.uuid"
-	"github.com/uber-go/zap"
-	"gopkg.in/redis.v5"
+	"go.uber.org/zap"
 
 	"dictservice/model"
 	"dictservice/types"
 	"strings"
 )
 
-func NewDictLogService(redis *redis.Client, logger zap.Logger) model.DictLogService {
-	return &dictLogServiceImpl{redis, logger}
+func NewDictLogService(redis *redis.Client) model.DictLogService {
+	return &dictLogServiceImpl{redis}
 }
 
 const (
@@ -25,8 +25,7 @@ const (
 )
 
 type dictLogServiceImpl struct {
-	redis  *redis.Client
-	logger zap.Logger
+	redis *redis.Client
 }
 
 func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error) {
@@ -35,7 +34,9 @@ func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error)
 
 	v, err := json.Marshal(logEntity)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("error: %v", err))
+		logger, _ := zap.NewProduction()
+		defer logger.Sync()
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return
 	}
 
@@ -53,7 +54,9 @@ func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error)
 func (s *dictLogServiceImpl) FindAllLogs() ([]types.DictLogEntity, error) {
 	reply, err := s.redis.HVals(dict_log_data_key).Result()
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("error: %v", err))
+		logger, _ := zap.NewProduction()
+		defer logger.Sync()
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return nil, err
 	}
 
@@ -76,12 +79,16 @@ func (s *dictLogServiceImpl) DeleteLog(id string) error {
 
 	c, err := s.redis.HDel(dict_log_data_key, id).Result()
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("error: %v", err))
+		logger, _ := zap.NewProduction()
+		defer logger.Sync()
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return err
 	}
 	if c <= 0 {
 		msg := fmt.Sprintf("id为%s的log不存在", id)
-		s.logger.Error(fmt.Sprintf("error: %v", msg))
+		logger, _ := zap.NewProduction()
+		defer logger.Sync()
+		logger.Error(msg)
 		return types.LogNoExistsError{Id: types.Id(id)}
 	}
 

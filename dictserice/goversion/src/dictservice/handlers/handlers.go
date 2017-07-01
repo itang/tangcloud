@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/uber-go/zap"
+	"go.uber.org/zap"
 
 	"dictservice/model"
 	"dictservice/types"
@@ -13,11 +13,10 @@ import (
 
 type dictLogController struct {
 	dictLogService model.DictLogService
-	logger         zap.Logger
 }
 
-func NewDictLogController(dictLogService model.DictLogService, logger zap.Logger) *dictLogController {
-	return &dictLogController{dictLogService, logger}
+func NewDictLogController(dictLogService model.DictLogService) *dictLogController {
+	return &dictLogController{dictLogService}
 }
 
 func (c *dictLogController) Ping(ctx echo.Context) error {
@@ -25,17 +24,20 @@ func (c *dictLogController) Ping(ctx echo.Context) error {
 }
 
 func (c *dictLogController) CreateLog(ctx echo.Context) error {
-	c.logger.Info("Post to /dict/logs")
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	logger.Info("create log...")
 
 	dictLog := types.DictLog{}
 	if err := ctx.Bind(&dictLog); err != nil {
-		c.logger.Error(fmt.Sprintf("error: %v", err))
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
 	id, err := c.dictLogService.CreateLog(dictLog)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("error: %v", err))
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
@@ -43,11 +45,13 @@ func (c *dictLogController) CreateLog(ctx echo.Context) error {
 }
 
 func (c *dictLogController) ListLogs(ctx echo.Context) error {
-	c.logger.Info("Get /dict/logs")
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	logger.Info("Get /dict/logs")
 
 	logs, err := c.dictLogService.FindAllLogs()
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("error: %v", err))
+		logger.Error(fmt.Sprintf("error: %v", err))
 		return errorJSON(ctx, respMessage(err.Error()))
 	}
 
@@ -55,10 +59,13 @@ func (c *dictLogController) ListLogs(ctx echo.Context) error {
 }
 
 func (c *dictLogController) DeleteLog(ctx echo.Context) error {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
 	id := ctx.Param("id")
-	c.logger.Info("Delete /dict/" + id)
+	logger.Info("Delete /dict/" + id)
 	if id == "" {
-		c.logger.Warn("路径参数id为空")
+		logger.Warn("路径参数id为空")
 		return badRequestSON(ctx, respMessage("路径参数id为空"))
 	}
 
@@ -67,7 +74,7 @@ func (c *dictLogController) DeleteLog(ctx echo.Context) error {
 		case types.LogNoExistsError:
 			return badRequestSON(ctx, respMessage(err.Error()))
 		default:
-			c.logger.Error(fmt.Sprintf("error: %v", err))
+			logger.Error(fmt.Sprintf("error: %v", err))
 			return errorJSON(ctx, respMessage("删除日志出错"))
 		}
 	}

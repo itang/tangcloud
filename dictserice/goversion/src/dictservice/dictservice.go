@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
-	"github.com/uber-go/zap"
-	"gopkg.in/redis.v5"
+	"go.uber.org/zap"
 
 	"dictservice/handlers"
 	local_middleware "dictservice/middleware"
@@ -17,9 +17,9 @@ var (
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	logger                                 = zap.New(zap.NewJSONEncoder( /*zap.NoTime()*/ )) // drop timestamps in tests
-	dictLogService    model.DictLogService = model_impl.NewDictLogService(client, logger)
-	dictLogController                      = handlers.NewDictLogController(dictLogService, logger)
+
+	dictLogService    model.DictLogService = model_impl.NewDictLogService(client)
+	dictLogController                      = handlers.NewDictLogController(dictLogService)
 )
 
 func init() {
@@ -43,6 +43,7 @@ func main() {
 }
 
 func pingRedis() {
+	logger, _ := zap.NewProduction()
 	logger.Info("redis client ping...")
 	pingErr := client.Ping().Err()
 	if pingErr != nil {

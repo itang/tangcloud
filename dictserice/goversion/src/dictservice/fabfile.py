@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fabric.api import *
+from fabric.api import local
 from datetime import datetime
 import os
 
@@ -26,7 +26,7 @@ def run():
 
 def dev():
     """dev"""
-    gocmd('realize fast')
+    gocmd('realize run')
 
 
 def start():
