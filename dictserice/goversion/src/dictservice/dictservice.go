@@ -44,6 +44,8 @@ func main() {
 
 func pingRedis() {
 	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
 	logger.Info("redis client ping...")
 	pingErr := client.Ping().Err()
 	if pingErr != nil {
