@@ -9,18 +9,28 @@ import (
 	local_middleware "dictservice/middleware"
 	"dictservice/model"
 	model_impl "dictservice/model/impl"
+	"os"
 )
 
 var (
 	client *redis.Client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr: getRedisURL(),
 		Password: "", // no password set
-		DB:       0,  // use default DB
+		DB: 0,        // use default DB
 	})
 
 	dictLogService    model.DictLogService = model_impl.NewDictLogService(client)
 	dictLogController                      = handlers.NewDictLogController(dictLogService)
 )
+
+func getRedisURL() string {
+	url := os.Getenv("REDIS_URL")
+	if url != "" {
+		return url
+	} else {
+		return "localhost:6379"
+	}
+}
 
 func init() {
 	pingRedis()

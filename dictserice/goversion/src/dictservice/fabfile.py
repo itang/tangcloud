@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from fabric.api import local
-from datetime import datetime
 import os
+from datetime import datetime
+from fabric.api import local, run, put
 
 
 def gocmd(cmd):
@@ -13,14 +13,8 @@ def gocmd(cmd):
     local('GOPATH={} {}'.format(gopath, cmd))
 
 
-def prepare():
-    """prepare"""
-    for p in ['github.com/itang/gotang', 'github.com/labstack/echo', 'github.com/uber-go/zap', 'gopkg.in/redis.v5']:
-        gocmd('go get {}'.format(p))
-
-
-def run():
-    """run"""
+def start():
+    """start"""
     gocmd('go run dictservice.go')
 
 
@@ -29,12 +23,12 @@ def dev():
     gocmd('realize run')
 
 
-def start():
-    """forego"""
-    # local('forego start') # https://github.com/ddollar/forego
-
-    local('honcho start') # https://github.com/nickstenning/honcho
-
+# def start():
+#     """forego"""
+#     # local('forego start') # https://github.com/ddollar/forego
+#
+#     local('honcho start') # https://github.com/nickstenning/honcho
+#
 
 def repl():
     """repl"""
@@ -73,3 +67,13 @@ def update():
 def status():
     """dep status"""
     gocmd('dep status')
+
+
+def deploy():
+    """deploy"""
+    gocmd("go build")
+    run('cd /data/gateway; docker-compose stop dict_go; rm -rf dict/goversion/go_echo_version')
+    put('dictservice', '/data/gateway/dict/goversion/go_echo_version')
+    run('cd /data/gateway/dict/goversion; chmod +x go_echo_version')
+    run('cd /data/gateway; docker-compose start dict_go')
+    local('rm dictservice')

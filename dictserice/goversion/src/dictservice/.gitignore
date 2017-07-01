@@ -4,6 +4,7 @@
 
 vendor/
 
-dictservice_linux_386
+dictservice
 
 .realize
+
