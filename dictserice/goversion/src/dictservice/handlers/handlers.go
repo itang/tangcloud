@@ -9,6 +9,7 @@ import (
 
 	"dictservice/model"
 	"dictservice/types"
+	"strconv"
 )
 
 type dictLogController struct {
@@ -69,7 +70,8 @@ func (c *dictLogController) DeleteLog(ctx echo.Context) error {
 		return badRequestSON(ctx, respMessage("路径参数id为空"))
 	}
 
-	if err := c.dictLogService.DeleteLog(id); err != nil {
+	i, _ := strconv.ParseInt(id, 10, 64)
+	if err := c.dictLogService.DeleteLog(i); err != nil {
 		switch err.(type) {
 		case types.LogNoExistsError:
 			return badRequestSON(ctx, respMessage(err.Error()))

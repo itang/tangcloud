@@ -2,7 +2,7 @@ package types
 
 import "fmt"
 
-type Id string
+type Id int64
 
 type DictLog struct {
 	From string `json:"from"`

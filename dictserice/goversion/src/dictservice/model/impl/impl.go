@@ -28,8 +28,8 @@ type dictLogServiceImpl struct {
 	redis *redis.Client
 }
 
-func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error) {
-	id = uuid()
+func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id int64, err error) {
+	id = time.Now().Unix()
 	logEntity := types.DictLogEntity{Id: types.Id(id), DictLog: log}
 
 	v, err := json.Marshal(logEntity)
@@ -46,7 +46,7 @@ func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id string, err error)
 
 	//TODO: in transaction
 	s.redis.ZAdd(dict_log_key, redis.Z{Member: value, Score: score})
-	s.redis.HSet(dict_log_data_key, id, logEntityJson)
+	s.redis.HSet(dict_log_data_key, fmt.Sprintf("%d",id), logEntityJson)
 
 	return
 }
@@ -72,12 +72,12 @@ func (s *dictLogServiceImpl) FindAllLogs() ([]types.DictLogEntity, error) {
 	return logs, nil
 }
 
-func (s *dictLogServiceImpl) DeleteLog(id string) error {
-	if id == "" {
+func (s *dictLogServiceImpl) DeleteLog(id int64) error {
+	if id == 0 {
 		return errors.New("id不能为空")
 	}
 
-	c, err := s.redis.HDel(dict_log_data_key, id).Result()
+	c, err := s.redis.HDel(dict_log_data_key, fmt.Sprintf("%d",id)).Result()
 	if err != nil {
 		logger, _ := zap.NewProduction()
 		defer logger.Sync()
@@ -95,8 +95,8 @@ func (s *dictLogServiceImpl) DeleteLog(id string) error {
 	return nil
 }
 
-func (s *dictLogServiceImpl) ExistsLog(id string) (exists bool, err error) {
-	return s.redis.HExists(dict_log_data_key, id).Result()
+func (s *dictLogServiceImpl) ExistsLog(id int64) (exists bool, err error) {
+	return s.redis.HExists(dict_log_data_key, fmt.Sprintf("%d",id)).Result()
 }
 
 func uuid() string {
