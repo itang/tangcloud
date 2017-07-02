@@ -14,9 +14,9 @@ import (
 
 var (
 	client *redis.Client = redis.NewClient(&redis.Options{
-		Addr: getRedisURL(),
+		Addr:     getRedisURL(),
 		Password: "", // no password set
-		DB: 0,        // use default DB
+		DB:       0,  // use default DB
 	})
 
 	dictLogService    model.DictLogService = model_impl.NewDictLogService(client)

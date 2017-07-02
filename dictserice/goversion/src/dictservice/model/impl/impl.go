@@ -46,7 +46,7 @@ func (s *dictLogServiceImpl) CreateLog(log types.DictLog) (id int64, err error) 
 
 	//TODO: in transaction
 	s.redis.ZAdd(dict_log_key, redis.Z{Member: value, Score: score})
-	s.redis.HSet(dict_log_data_key, fmt.Sprintf("%d",id), logEntityJson)
+	s.redis.HSet(dict_log_data_key, fmt.Sprintf("%d", id), logEntityJson)
 
 	return
 }
@@ -77,7 +77,7 @@ func (s *dictLogServiceImpl) DeleteLog(id int64) error {
 		return errors.New("id不能为空")
 	}
 
-	c, err := s.redis.HDel(dict_log_data_key, fmt.Sprintf("%d",id)).Result()
+	c, err := s.redis.HDel(dict_log_data_key, fmt.Sprintf("%d", id)).Result()
 	if err != nil {
 		logger, _ := zap.NewProduction()
 		defer logger.Sync()
@@ -96,7 +96,7 @@ func (s *dictLogServiceImpl) DeleteLog(id int64) error {
 }
 
 func (s *dictLogServiceImpl) ExistsLog(id int64) (exists bool, err error) {
-	return s.redis.HExists(dict_log_data_key, fmt.Sprintf("%d",id)).Result()
+	return s.redis.HExists(dict_log_data_key, fmt.Sprintf("%d", id)).Result()
 }
 
 func uuid() string {
