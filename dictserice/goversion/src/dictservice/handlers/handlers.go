@@ -3,13 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 
 	"dictservice/model"
 	"dictservice/types"
-	"strconv"
 )
 
 type dictLogController struct {

@@ -3,6 +3,7 @@ package impl
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -12,7 +13,6 @@ import (
 
 	"dictservice/model"
 	"dictservice/types"
-	"strings"
 )
 
 func NewDictLogService(redis *redis.Client) model.DictLogService {

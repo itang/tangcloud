@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
@@ -9,7 +11,6 @@ import (
 	local_middleware "dictservice/middleware"
 	"dictservice/model"
 	model_impl "dictservice/model/impl"
-	"os"
 )
 
 var (
