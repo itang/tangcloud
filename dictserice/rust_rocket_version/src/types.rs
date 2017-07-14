@@ -1,5 +1,5 @@
 use serde::ser::Serialize;
-use rocket_contrib::JSON;
+use rocket_contrib::Json;
 
 
 #[derive(Serialize, Debug)]
@@ -15,7 +15,7 @@ impl<T: Serialize> Resp<T> {
         code: i32,
         message: Option<S>,
         data: Option<T>,
-    ) -> JSON<Resp<T>> {
+    ) -> Json<Resp<T>> {
         Resp::json(true, code, message, data)
     }
 
@@ -23,15 +23,15 @@ impl<T: Serialize> Resp<T> {
         code: i32,
         message: Option<S>,
         data: Option<T>,
-    ) -> JSON<Resp<T>> {
+    ) -> Json<Resp<T>> {
         Resp::json(false, code, message, data)
     }
 
-    pub fn json<S>(ok: bool, code: i32, message: Option<S>, data: Option<T>) -> JSON<Resp<T>>
+    pub fn json<S>(ok: bool, code: i32, message: Option<S>, data: Option<T>) -> Json<Resp<T>>
     where
         S: Into<String>,
     {
-        JSON(Resp {
+        Json(Resp {
             ok: ok,
             code: code,
             message: message.map(|x| x.into()),
@@ -42,8 +42,8 @@ impl<T: Serialize> Resp<T> {
 
 
 pub type ResultJSONResp<T /*: Serialize*/, E /*: Serialize*/> = Result<
-    JSON<Resp<T>>,
-    JSON<Resp<E>>,
+    Json<Resp<T>>,
+    Json<Resp<E>>,
 >;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

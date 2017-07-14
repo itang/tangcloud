@@ -1,4 +1,4 @@
-use rocket_contrib::JSON;
+use rocket_contrib::Json;
 use redis;
 use redis::Commands;
 use rocket::State;
@@ -33,7 +33,7 @@ struct LogEntity {
 
 
 #[post("/logs", format = "application/json", data = "<log>")]
-fn new(log: JSON<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64>, ()> {
+fn new(log: Json<LogForm>, redis: State<redis::Client>) -> ResultJSONResp<Id<i64>, ()> {
     let conn = redis_conn(redis)?;
 
     let LogForm { from, to } = log.0;
@@ -97,7 +97,7 @@ fn list(redis: State<redis::Client>) -> ResultJSONResp<Vec<LogEntity>, ()> {
 }
 
 
-fn redis_conn(redis: State<redis::Client>) -> Result<redis::Connection, JSON<Resp<()>>> {
+fn redis_conn(redis: State<redis::Client>) -> Result<redis::Connection, Json<Resp<()>>> {
     redis.get_connection().map_err(|_| {
         Resp::json_err(500, Some("无法获取Redis连接"), None)
     })
