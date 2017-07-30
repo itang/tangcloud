@@ -1,5 +1,5 @@
-defmodule Elixirversion.Web.ErrorView do
-  use Elixirversion.Web, :view
+defmodule ElixirversionWeb.ErrorView do
+  use ElixirversionWeb, :view
 
   def render("404.json", _assigns) do
     %{errors: %{detail: "Page not found"}}

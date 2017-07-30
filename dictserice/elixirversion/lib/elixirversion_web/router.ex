@@ -1,5 +1,5 @@
-defmodule Elixirversion.Web.Router do
-  use Elixirversion.Web, :router
+defmodule ElixirversionWeb.Router do
+  use ElixirversionWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -9,7 +9,7 @@ defmodule Elixirversion.Web.Router do
     plug :put_secure_browser_headers
   end
 
-  scope "/", Elixirversion.Web do
+  scope "/", ElixirversionWeb do
     pipe_through :browser # Use the default browser stack
 
     get "/", IndexController, :index
@@ -17,10 +17,10 @@ defmodule Elixirversion.Web.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-    plug Elixirversion.Web.Plugs.RuntimePlug, []
+    plug ElixirversionWeb.Plugs.RuntimePlug, []
   end
 
-  scope "/api", Elixirversion.Web do
+  scope "/api", ElixirversionWeb do
     pipe_through :api
 
     get "/ping", PingController, :ping

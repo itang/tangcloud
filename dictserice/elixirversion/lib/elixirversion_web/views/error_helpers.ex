@@ -1,4 +1,4 @@
-defmodule Elixirversion.Web.ErrorHelpers do
+defmodule ElixirversionWeb.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
@@ -21,9 +21,9 @@ defmodule Elixirversion.Web.ErrorHelpers do
     #     dgettext "errors", "is invalid"
     #
     if count = opts[:count] do
-      Gettext.dngettext(Elixirversion.Web.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(ElixirversionWeb.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(Elixirversion.Web.Gettext, "errors", msg, opts)
+      Gettext.dgettext(ElixirversionWeb.Gettext, "errors", msg, opts)
     end
   end
 end

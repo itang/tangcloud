@@ -1,5 +1,5 @@
-defmodule Elixirversion.Web.LogController do
-  use Elixirversion.Web, :controller
+defmodule ElixirversionWeb.LogController do
+  use ElixirversionWeb, :controller
   alias Elixirversion.Datatype.Result
 
   @dict_log_key "tc:dict:log"

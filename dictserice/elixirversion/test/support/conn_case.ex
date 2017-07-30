@@ -20,10 +20,10 @@ defmodule Elixirversion.Web.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
 
-      import Elixirversion.Web.Router.Helpers
+      import ElixirversionWeb.Router.Helpers
 
       # The default endpoint for testing
-      @endpoint Elixirversion.Web.Endpoint
+      @endpoint ElixirversionWeb.Endpoint
     end
   end
 

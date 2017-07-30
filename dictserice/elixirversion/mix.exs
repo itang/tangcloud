@@ -16,8 +16,10 @@ defmodule Elixirversion.Mixfile do
   #
   # Type `mix help compile.app` for more information.
   def application do
-    [mod: {Elixirversion, []},
-     applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger, :gettext, :redix]]
+#    [mod: {Elixirversion, []},
+ #    applications: [:phoenix, :phoenix_pubsub, :cowboy, :logger, :gettext, :redix]]
+    [mod: {Elixirversion.Application, []},
+     extra_applications: [:logger, :runtime_tools]]
   end
 
   # Specifies which paths to compile per environment.
@@ -28,13 +30,14 @@ defmodule Elixirversion.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.3.0-rc"},
+    [{:phoenix, "~> 1.3.0"},
      {:phoenix_pubsub, "~> 1.0"},
      {:gettext, "~> 0.13"},
      {:cowboy, "~> 1.1"},
      {:redix, ">= 0.0.0"},
      {:uuid, "~> 1.1"},
 
+     {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:ex_doc, "~> 0.14", only: :dev},
      {:distillery, "~> 0.10"},
      {:dialyxir, "~> 0.5", only: [:dev]},
