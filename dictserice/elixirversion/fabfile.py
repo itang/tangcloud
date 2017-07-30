@@ -28,7 +28,7 @@ def restart_remote():
 
 
 dist_cmds = [  # 'mix deps.get',
-    #'mix clean',
+    'mix clean',
     #'mix release.clean',
     'mix deps.get --only prod',
     'MIX_ENV=prod mix phoenix.digest',
