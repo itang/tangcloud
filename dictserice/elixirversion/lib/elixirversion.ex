@@ -1,6 +1,3 @@
 defmodule Elixirversion do
-  @moduledoc """
-  Application Entry
-  """
-
+  @moduledoc "Application Entry\n"
 end

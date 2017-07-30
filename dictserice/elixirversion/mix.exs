@@ -41,6 +41,8 @@ defmodule Elixirversion.Mixfile do
      {:ex_doc, "~> 0.14", only: :dev},
      {:distillery, "~> 0.10"},
      {:dialyxir, "~> 0.5", only: [:dev]},
+
+     {:exfmt, "~> 0.3.0", only: [:dev]},
      {:credo, "~> 0.7", only: [:dev, :test]},
    ]
   end
