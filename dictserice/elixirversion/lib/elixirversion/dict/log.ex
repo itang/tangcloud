@@ -30,7 +30,7 @@ defmodule Elixirversion.Dict.Log do
     end
   end
 
-  def delete(id) when is_bitstring(id) do
+  def delete(id) when is_binary(id) do
     with {:ok, i} <- Redix.command(:redix, ["hdel", @dict_log_data_key, id]) do
       if i == 0 do
         {:error, "id为#{id}的日志不存在!"}
