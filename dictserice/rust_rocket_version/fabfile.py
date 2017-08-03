@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from fabric.api import *
+import fabric.api as fab
 
 
 def help():
-    """help"""
-    print('help')
+    """Help."""
+    fab.local('fab -l')
 
 
 def dev():
-    """dev"""
-    local('watchexec -e rs -r "cargo run"')
+    """Run on dev."""
+    fab.local('watchexec -e rs -r "cargo run"')
 
 
 def deploy():
-    """run"""
-    local('cargo build --release')
-    run('cd /data/gateway; docker-compose stop dict; docker-compose ps')
-    put('target/release/rust_rocket_version',
-        '/data/gateway/dict/rustversion/rust_rocket_version')
-    run('cd /data/gateway; docker-compose restart dict; docker-compose ps')
+    """Deploy to cloud."""
+    fab.local('cargo build --release')
+    fab.run('cd /data/gateway; docker-compose stop dict; docker-compose ps')
+    fab.put('target/release/rust_rocket_version', '/data/gateway/dict/rustversion/rust_rocket_version')
+    fab.run('cd /data/gateway; docker-compose restart dict; docker-compose ps')
