@@ -4,9 +4,7 @@ extern crate rocket;
 extern crate redis;
 extern crate rust_rocket_version;
 
-use rust_rocket_version::web::fairings::XRuntime;
-use rust_rocket_version::web::webroot;
-use rust_rocket_version::web::api::{self, dict};
+use rust_rocket_version::web::routes::routes;
 
 
 fn main() {
@@ -18,11 +16,7 @@ fn main() {
     );
     let redis_client = redis::Client::open(redis_url).expect("open redis error");
 
-    rkt.mount("/", routes![webroot::index])
-        .mount("/api", routes![api::ping])
-        .mount("/api/dict", routes![dict::list, dict::new])
-        .attach(XRuntime::default())
-        .catch(errors![webroot::not_found])
+    routes(rkt)
         .manage(redis_client)
         .launch();
 }

@@ -85,7 +85,7 @@ fn list(redis: State<redis::Client>) -> ResultJSONResp<Vec<LogEntity>, ()> {
     })?;
     let res: Result<Vec<LogEntity>, String> = res.into_iter()
         .map(|it| {
-            serde_json::from_str(&it).map_err(|_| "无法获取Redis连接".to_string())
+            serde_json::from_str(&it).map_err(|_| "from json error".to_string())
         })
         .collect();
 
