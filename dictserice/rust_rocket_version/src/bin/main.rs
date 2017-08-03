@@ -16,13 +16,13 @@ fn main() {
     let redis_url = config.get_str("redis_url").expect(
         "can't get redis url from config",
     );
-    let client = redis::Client::open(redis_url).expect("open redis error");
+    let redis_client = redis::Client::open(redis_url).expect("open redis error");
 
     rkt.mount("/", routes![webroot::index])
         .mount("/api", routes![api::ping])
         .mount("/api/dict", routes![dict::list, dict::new])
         .attach(XRuntime::default())
         .catch(errors![webroot::not_found])
-        .manage(client)
+        .manage(redis_client)
         .launch();
 }
