@@ -11,8 +11,8 @@ defmodule ElixirversionWeb.LogController do
     end
   end
 
-  def create(conn, %{"from" => from, "to" => to} = params) do
-    with {:ok, _} <- DictLog.create(%{:from => from, :to => to}) do
+  def create(conn, %{"from" => from, "to" => to} = _params) do
+    with {:ok, _} <- DictLog.create(%{from: from, to: to}) do
       json conn, Result.ok()
     else
       _ -> conn |> put_status(500) |> json(Result.error())

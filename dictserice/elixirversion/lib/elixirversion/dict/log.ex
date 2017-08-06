@@ -6,7 +6,7 @@ defmodule Elixirversion.Dict.Log do
   @dict_log_key "tc:dict:log"
   @dict_log_data_key "tc:dict:log:data"
 
-  @type result :: {:ok, String.t} | {:error, String.t} | {:atom, any} | map
+  @type result :: {:ok, String.t} | {:error, String.t} | {atom, any} | map | any
   
   @spec get_all_as_json() :: result
   def get_all_as_json do
@@ -18,7 +18,7 @@ defmodule Elixirversion.Dict.Log do
     end
   end
 
-  @spec create(%{from: String.t, to: String.t}) :: result
+  #@spec create(%{from: String.t, to: String.t}) :: result
   def create(%{:from => from, :to => to} = _log_form) do
     timestamp = round(:os.system_time / 1000 / 1000)
     id = timestamp
@@ -30,7 +30,7 @@ defmodule Elixirversion.Dict.Log do
     with {:ok, _} <- Redix.command(:redix, ["zadd", @dict_log_key, score, member]),
          {:ok, entity_json} <- Poison.encode(entity),
          {:ok, _} <- Redix.command(:redix, ["hset", @dict_log_data_key, member, entity_json]) do
-      {:ok, ""}
+      {:ok, id}
     else
       err -> err
     end
@@ -42,7 +42,7 @@ defmodule Elixirversion.Dict.Log do
       if i == 0 do
         {:error, "id为#{id}的日志不存在!"}
       else
-         {:ok, ""}
+        {:ok, ""}
       end
     else
       err -> err
