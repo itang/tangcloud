@@ -11,7 +11,7 @@ defmodule ElixirversionWeb.Plugs.RuntimePlug do
 
     Conn.register_before_send(conn, fn conn ->
       stop = System.monotonic_time()
-      diff = System.convert_time_unit(stop - start, :native, :micro_seconds)
+      diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
       conn |> Conn.put_resp_header("x-runtime", formatted_diff(diff))
     end)
