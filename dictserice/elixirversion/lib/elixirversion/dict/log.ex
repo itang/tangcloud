@@ -1,9 +1,14 @@
 defmodule Elixirversion.Dict.Log do
-  @moduledoc false
+  @moduledoc """
+  Dict Log Service
+  """
 
   @dict_log_key "tc:dict:log"
   @dict_log_data_key "tc:dict:log:data"
 
+  @type result :: {:ok, String.t} | {:error, String.t} | {:atom, any} | map
+  
+  @spec get_all_as_json() :: result
   def get_all_as_json do
     with {:ok, ret} <- Redix.command(:redix, ["HVALS",  @dict_log_data_key]) do
       ret = "[#{Enum.join(ret, ", ")}]"
@@ -13,7 +18,8 @@ defmodule Elixirversion.Dict.Log do
     end
   end
 
-  def create(%{:from => from, :to => to} = log_form) do
+  @spec create(%{from: String.t, to: String.t}) :: result
+  def create(%{:from => from, :to => to} = _log_form) do
     timestamp = round(:os.system_time / 1000 / 1000)
     id = timestamp
     score = timestamp
@@ -30,6 +36,7 @@ defmodule Elixirversion.Dict.Log do
     end
   end
 
+  @spec delete(String.t) :: result
   def delete(id) when is_binary(id) do
     with {:ok, i} <- Redix.command(:redix, ["hdel", @dict_log_data_key, id]) do
       if i == 0 do
