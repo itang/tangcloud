@@ -15,4 +15,4 @@ time = "0.1.36"
 
 [[bin]]
 name = "rust_rocket_version"
-#src = "bin/main.rs"
+path = "src/bin/main.rs"
