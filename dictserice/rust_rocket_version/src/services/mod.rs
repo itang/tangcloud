@@ -1,6 +1,3 @@
 pub mod dict {
-    pub mod log {
-
-
-    }
+    pub mod log {}
 }

@@ -1,7 +1,6 @@
 use serde::ser::Serialize;
 use rocket_contrib::Json;
 
-
 #[derive(Serialize, Debug)]
 pub struct Resp<T: Serialize> {
     ok: bool,
@@ -40,11 +39,8 @@ impl<T: Serialize> Resp<T> {
     }
 }
 
-
-pub type ResultJSONResp<T /*: Serialize*/, E /*: Serialize*/> = Result<
-    Json<Resp<T>>,
-    Json<Resp<E>>,
->;
+pub type ResultJSONResp<T /*: Serialize*/, E /*: Serialize*/> =
+    Result<Json<Resp<T>>, Json<Resp<E>>>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Id<T: Serialize>(pub T);

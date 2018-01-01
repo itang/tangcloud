@@ -1,8 +1,7 @@
-use rocket::{Request, Data, Response};
+use rocket::{Data, Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use time;
-
 
 #[derive(Default)]
 pub struct XRuntime {}
